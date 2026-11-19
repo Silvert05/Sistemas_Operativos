@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Procesos | Kernel Lab · Apuntes visuales de Sistemas Operativos</title>
+<style>
+:root{
+  --bg:#0a1020; --bg2:#0d1527; --surf:#121c33; --surf2:#17233f; --bd:#243558; --bd2:#2f4572;
+  --tx:#e6edf7; --mu:#93a4c0; --blue:#4f9dff; --orange:#ff9f43; --yellow:#f5c542; --teal:#2dd4bf;
+  --red:#ff6b6b; --green:#4ade80; --purple:#c084fc;
+  --sans:'Segoe UI Variable','Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+  --mono:'Cascadia Mono','Cascadia Code',Consolas,'Courier New',monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);line-height:1.6;font-size:17px;
+  background-image:radial-gradient(900px 500px at 85% -5%,rgba(79,157,255,.13),transparent 60%),radial-gradient(700px 500px at -5% 20%,rgba(45,212,191,.08),transparent 60%);background-attachment:fixed}
+a{color:var(--blue)}
+code,.mono{font-family:var(--mono)}
+p{margin:0 0 12px}
+h1,h2,h3,h4{margin:0;line-height:1.15}
+
+/* ---------- barra superior ---------- */
+.top{position:sticky;top:0;z-index:50;background:rgba(10,16,32,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:18px;padding:0 22px;height:62px}
+.brand{font-weight:800;white-space:nowrap;letter-spacing:.2px}
+.brand b{color:var(--teal)} .brand span{color:var(--mu);font-weight:500}
+nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1}
+nav::-webkit-scrollbar{display:none}
+nav a{color:var(--mu);text-decoration:none;font-size:14px;font-weight:600;padding:8px 12px;border-radius:10px;white-space:nowrap;border:1px solid transparent}
+nav a:hover{color:var(--tx);background:var(--surf)}
+nav a.on{color:#0a1020;background:var(--teal)}
+.prog{position:fixed;left:0;top:62px;height:3px;background:linear-gradient(90deg,var(--teal),var(--blue),var(--orange));width:0;z-index:60}
+
+/* ---------- estructura ---------- */
+main{max-width:1180px;margin:0 auto;padding:0 22px 80px}
+.sec{padding:84px 0 8px}
+.kicker{font:700 12.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:12px}
+.sec h2{font-size:clamp(30px,4.4vw,46px);font-weight:800;letter-spacing:-.8px;margin-bottom:14px}
+.sec h2 em{font-style:normal;color:var(--yellow)}
+.intro{color:var(--mu);font-size:19px;max-width:820px;margin-bottom:28px}
+.rule{width:64px;height:4px;background:var(--yellow);border-radius:4px;margin:0 0 22px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.card{background:linear-gradient(180deg,var(--surf),#101a31);border:1px solid var(--bd);border-radius:18px;padding:22px 24px}
+.card h3{font-size:21px;margin-bottom:8px}
+.card .sub{font:700 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--blue);margin-bottom:10px;display:block}
+.card p{color:var(--mu);font-size:16px}
+.card.accent{border-color:var(--yellow);background:linear-gradient(180deg,#1f2234,#141a2d)}
+.card.accent h3{color:var(--yellow)}
+.tip{border-left:4px solid var(--yellow);background:rgba(245,197,66,.08);border-radius:0 12px 12px 0;padding:14px 18px;margin:18px 0;color:#f3e3a6;font-size:16px}
+.tip b{color:var(--yellow)}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s,transform .6s}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+
+/* ---------- hero ---------- */
+.hero{padding:70px 0 20px;display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:center}
+@media(max-width:900px){.hero{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(40px,6.4vw,72px);font-weight:800;letter-spacing:-2px;margin:10px 0 18px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--teal),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.lead{font-size:20px;color:var(--mu);max-width:560px}
+.hero .by{font:500 14px var(--mono);color:var(--mu);margin-top:22px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+
+/* ---------- botones ---------- */
+.btn{font:700 15px var(--sans);color:var(--tx);background:var(--surf2);border:1px solid var(--bd2);border-radius:12px;padding:10px 16px;cursor:pointer;transition:transform .12s,background .15s,border-color .15s;text-decoration:none;display:inline-block}
+.btn:hover:not(:disabled){background:#1e2d50;border-color:var(--blue);transform:translateY(-1px)}
+.btn.pri{background:var(--teal);color:#06231f;border-color:var(--teal)}
+.btn.pri:hover:not(:disabled){background:#5eead4}
+.btn.warn{background:rgba(255,159,67,.14);border-color:var(--orange);color:#ffd2a1}
+.btn.bad{background:rgba(255,107,107,.12);border-color:var(--red);color:#ffb3b3}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.btn.sm{padding:6px 12px;font-size:13.5px;border-radius:9px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+select,input[type=number],input[type=text]{font:600 15px var(--sans);background:#0b1326;color:var(--tx);border:1px solid var(--bd2);border-radius:10px;padding:8px 10px}
+input[type=number]{width:74px}
+input[type=range]{accent-color:var(--teal)}
+label.f{font-size:14px;color:var(--mu);display:flex;align-items:center;gap:8px}
+
+/* ---------- demo ---------- */
+.demo{border:1px solid var(--bd2);background:linear-gradient(180deg,#101a31,#0c1426);border-radius:20px;padding:22px;margin-top:22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.demo-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.demo-h h3{font-size:20px}
+.pill{font:700 11.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:999px;background:rgba(45,212,191,.14);color:var(--teal);border:1px solid rgba(45,212,191,.35)}
+.logbox{background:#080d1a;border:1px solid var(--bd);border-radius:14px;overflow:hidden}
+.logh{display:flex;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--bd);font:700 11.5px var(--mono);letter-spacing:.14em;color:var(--mu)}
+.live{color:var(--green)}
+.live::before{content:"";}
+.log{font:13px/1.65 var(--mono);height:170px;overflow:auto;padding:10px 14px}
+.log .ln{color:#b9c7de;animation:fadein .3s}
+.log .ts{color:#5b6d8c;margin-right:10px}
+.log .ok{color:var(--green)} .log .er{color:var(--red)} .log .wa{color:var(--yellow)} .log .in{color:var(--blue)}
+@keyframes fadein{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+
+/* ---------- estados (badges) ---------- */
+.st{display:inline-block;font:700 12px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid}
+.st-nuevo{color:#c3cfe3;border-color:#5b6d8c;background:rgba(147,164,192,.12)}
+.st-listo{color:var(--blue);border-color:var(--blue);background:rgba(79,157,255,.12)}
+.st-ejecutando{color:var(--green);border-color:var(--green);background:rgba(74,222,128,.12)}
+.st-bloqueado{color:var(--orange);border-color:var(--orange);background:rgba(255,159,67,.12)}
+.st-terminado{color:var(--red);border-color:var(--red);background:rgba(255,107,107,.12)}
+
+/* ---------- tablas ---------- */
+.tbl{width:100%;border-collapse:collapse;font-size:15.5px}
+.tbl th{font:700 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mu);text-align:left;padding:10px 12px;border-bottom:1px solid var(--bd2)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--bd);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .num{font-family:var(--mono)}
+.scroll{overflow-x:auto}
+
+/* ---------- código ---------- */
+.code{background:#080d1a;border:1px solid var(--bd);border-radius:14px;padding:16px 18px;font:14px/1.75 var(--mono);overflow-x:auto;color:#d5e1f5;white-space:pre}
+.code .cm{color:#6f82a3} .code .kw{color:var(--orange)} .code .fn{color:var(--blue)} .code .st2{color:var(--green)} .code .nu{color:var(--yellow)}
+.code .ln2{display:block;padding:0 8px;margin:0 -8px;border-radius:6px;transition:background .2s}
+.code .ln2.hl{background:rgba(245,197,66,.16)}
+
+/* ---------- hero monitor ---------- */
+.mon{background:linear-gradient(180deg,#0f192f,#0b1325);border:1px solid var(--bd2);border-radius:20px;padding:18px 18px 10px;box-shadow:0 30px 70px rgba(0,0,0,.4)}
+.mon .bar{display:flex;justify-content:space-between;font:700 12px var(--mono);letter-spacing:.12em;color:var(--mu);margin-bottom:8px}
+.mon .bar i{color:var(--green);font-style:normal}
+
+/* ---------- concepto ---------- */
+.plist{display:grid;gap:8px;margin-top:12px}
+.pi{display:flex;justify-content:space-between;align-items:center;background:#0b1326;border:1px solid var(--bd);border-radius:12px;padding:10px 14px;font:14px var(--mono);animation:fadein .35s}
+.pi small{color:var(--mu)}
+
+/* ---------- memoria ---------- */
+.memwrap{display:grid;grid-template-columns:minmax(300px,.9fr) 1.1fr;gap:22px}
+@media(max-width:860px){.memwrap{grid-template-columns:1fr}}
+.mem{display:flex;flex-direction:column;gap:6px;min-height:430px}
+.seg{border:2px solid var(--bd2);border-radius:12px;padding:10px 14px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;background:var(--surf)}
+.seg:hover{transform:translateX(3px);border-color:var(--blue)}
+.seg.sel{border-color:var(--yellow);box-shadow:0 0 0 3px rgba(245,197,66,.18)}
+.seg h4{font-size:15px;display:flex;justify-content:space-between}
+.seg h4 small{font:600 12px var(--mono);color:var(--mu)}
+.seg .fr{font:13px var(--mono);background:rgba(79,157,255,.16);border-radius:8px;padding:4px 8px;margin-top:6px;color:#bcd7ff;animation:fadein .3s}
+.seg .hb{font:13px var(--mono);background:rgba(255,159,67,.18);border-radius:8px;padding:4px 8px;margin-top:6px;color:#ffd9b0;animation:fadein .3s}
+.seg.stack{border-color:#2d5aa8} .seg.heap{border-color:#a8672d} .seg.data{border-color:#3d4d70} .seg.text{border-color:#6b5fa8}
+.seg.free{border-style:dashed;background:transparent;cursor:default;color:var(--mu);text-align:center;font:13px var(--mono);flex:1;display:flex;align-items:center;justify-content:center;min-height:50px}
+.seg.free:hover{transform:none;border-color:var(--bd2)}
+.msgbox{background:#0b1326;border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-top:14px;font-size:15.5px;color:var(--mu);min-height:76px}
+.msgbox b{color:var(--tx)}
+
+/* ---------- ciclo de vida ---------- */
+.lc{display:grid;grid-template-columns:1.35fr .85fr;gap:20px}
+@media(max-width:980px){.lc{grid-template-columns:1fr}}
+.svgbox{background:#0a1224;border:1px solid var(--bd);border-radius:16px;padding:10px}
+.svgbox svg{width:100%;height:auto;display:block}
+.nd rect{fill:#121c33;stroke:#3a4f7c;stroke-width:2.5;transition:all .25s}
+.nd text{fill:#b8c6de;font:700 17px var(--sans);text-anchor:middle}
+.nd text.s{font:500 12.5px var(--sans);fill:#7f91b0}
+.nd.on rect{fill:#1f5fd1;stroke:#9cc4ff;stroke-width:3.5;filter:drop-shadow(0 0 14px rgba(79,157,255,.7))}
+.nd.on text{fill:#fff} .nd.on text.s{fill:#d7e6ff}
+.ed{fill:none;stroke:#4a5f8a;stroke-width:2.5;transition:stroke .25s}
+.ed.hot{stroke:var(--yellow);stroke-width:4}
+.el{fill:#8aa0c4;font:600 13px var(--sans)}
+.trs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-top:14px}
+.pcb{background:#0b1326;border:1px solid var(--bd);border-radius:16px;padding:16px 18px}
+.pcb h4{font:700 12px var(--mono);letter-spacing:.14em;color:var(--mu);margin-bottom:10px}
+.pcb dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font:14px var(--mono)}
+.pcb dt{color:var(--mu)} .pcb dd{margin:0;color:var(--tx);text-align:right}
+.pcb .reg{color:var(--yellow)}
+.pcb .note{font:12px var(--sans);color:var(--mu);margin-top:10px}
+
+/* ---------- árbol fork ---------- */
+.tree{background:#0b1326;border:1px solid var(--bd);border-radius:14px;padding:14px;min-height:260px;font:14.5px var(--mono)}
+.tn{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:9px;cursor:pointer;margin:2px 0;border:1px solid transparent}
+.tn:hover{background:var(--surf)}
+.tn.sel{border-color:var(--yellow);background:rgba(245,197,66,.09)}
+.tn .br{color:#4a5f8a;white-space:pre}
+.tn .zb{color:var(--red);border:1px solid var(--red);border-radius:999px;font-size:11px;padding:2px 8px}
+.tn .ab{color:var(--green);border:1px solid var(--green);border-radius:999px;font-size:11px;padding:2px 8px}
+
+/* ---------- contexto ---------- */
+.ctx{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:860px){.ctx{grid-template-columns:1fr}}
+.box{background:#0b1326;border:2px solid var(--bd);border-radius:16px;padding:14px 16px;transition:all .3s}
+.box h4{font:700 12px var(--mono);letter-spacing:.12em;color:var(--mu);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.box dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font:14px var(--mono)}
+.box dd{margin:0;text-align:right;color:var(--yellow)}
+.box.act{border-color:var(--green);box-shadow:0 0 0 3px rgba(74,222,128,.14)}
+.box.flash{border-color:var(--orange);box-shadow:0 0 0 4px rgba(255,159,67,.25)}
+.meter{height:16px;border-radius:99px;background:#0b1326;border:1px solid var(--bd);overflow:hidden;display:flex;margin:10px 0 6px}
+.meter i{display:block;height:100%}
+
+/* ---------- gantt ---------- */
+.ptable input[type=text]{width:70px}
+.gantt{display:flex;height:64px;border-radius:12px;overflow:hidden;border:1px solid var(--bd2);background:#0b1326}
+.gs{display:flex;align-items:center;justify-content:center;color:#071018;font-weight:800;font-size:15px;border-right:2px solid #0b1326;transform-origin:left;animation:grow .5s ease-out both;overflow:hidden}
+.gs.idle{background:repeating-linear-gradient(45deg,#1b2744,#1b2744 6px,#16213a 6px,#16213a 12px);color:var(--mu)}
+@keyframes grow{from{transform:scaleX(0);opacity:0}to{transform:none;opacity:1}}
+.axis{position:relative;height:30px;margin-top:6px;font:12.5px var(--mono);color:var(--mu)}
+.axis span{position:absolute;transform:translateX(-50%)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+.kpi div{background:#0b1326;border:1px solid var(--bd);border-radius:14px;padding:12px 14px}
+.kpi b{display:block;font:800 26px var(--sans);color:var(--teal)}
+.kpi small{color:var(--mu);font-size:13px}
+.best{color:var(--green);font-weight:800}
+.dot{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:8px;vertical-align:-1px}
+
+/* ---------- hilos / ipc / concurrencia ---------- */
+.pbx{background:#0b1326;border:2px solid var(--bd2);border-radius:16px;padding:16px;transition:all .3s}
+.pbx.dead{border-color:var(--red);background:rgba(255,107,107,.07)}
+.thr{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+.th{flex:1;min-width:110px;border-radius:12px;padding:10px;text-align:center;font:700 14px var(--mono);background:rgba(79,157,255,.14);border:1px solid var(--blue);transition:all .3s}
+.th.dead{background:rgba(255,107,107,.15);border-color:var(--red);color:#ffb3b3;text-decoration:line-through}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{background:transparent;border:1px solid var(--bd2);color:var(--mu);border-radius:999px;padding:8px 16px;font:700 14px var(--sans);cursor:pointer}
+.tab.on{background:var(--blue);color:#06142b;border-color:var(--blue)}
+.ipc{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:14px 0}
+.node2{background:#0b1326;border:2px solid var(--bd2);border-radius:14px;padding:14px 20px;font:700 15px var(--mono);min-width:120px;text-align:center;transition:all .25s}
+.node2.on{border-color:var(--yellow);background:rgba(245,197,66,.12);transform:scale(1.07)}
+.ar{color:var(--mu);font-size:24px}
+.inbox{background:#0b1326;border:1px dashed var(--bd2);border-radius:12px;padding:10px 14px;min-height:60px;font:14px var(--mono);color:#cfe0ff}
+.vbig{font:800 38px var(--mono);color:var(--yellow)}
+.banner{border-radius:12px;padding:12px 16px;font-weight:700;margin-top:14px}
+.banner.er{background:rgba(255,107,107,.14);border:1px solid var(--red);color:#ffb3b3}
+.banner.ok{background:rgba(74,222,128,.12);border:1px solid var(--green);color:#b6f3cb}
+.banner.wa{background:rgba(245,197,66,.12);border:1px solid var(--yellow);color:#f3e3a6}
+
+/* ---------- práctica ---------- */
+.cmd{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#080d1a;border:1px solid var(--bd);border-radius:10px;padding:8px 12px;font:14px var(--mono);color:#d5e1f5;margin-bottom:6px}
+.cmd button{font:700 12px var(--sans);padding:4px 10px;border-radius:8px;border:1px solid var(--bd2);background:var(--surf2);color:var(--mu);cursor:pointer}
+.cmd button:hover{color:var(--tx);border-color:var(--blue)}
+.lab{font:700 12px var(--mono);letter-spacing:.1em;color:var(--teal);text-transform:uppercase;margin:12px 0 6px}
+
+/* ---------- quiz ---------- */
+.q{background:linear-gradient(180deg,var(--surf),#101a31);border:1px solid var(--bd);border-radius:18px;padding:22px 24px;margin-bottom:16px}
+.q h4{font-size:19px;margin-bottom:14px}
+.opt{display:block;width:100%;text-align:left;background:#0b1326;border:1px solid var(--bd2);border-radius:12px;padding:12px 16px;margin-bottom:8px;color:var(--tx);font:600 15.5px var(--sans);cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt.ok{border-color:var(--green);background:rgba(74,222,128,.12)}
+.opt.no{border-color:var(--red);background:rgba(255,107,107,.1)}
+.opt:disabled{cursor:default}
+.exp{margin-top:10px;font-size:15px;color:var(--mu);display:none}
+.exp.on{display:block}
+.score{font:800 22px var(--sans)}
+
+footer{border-top:1px solid var(--bd);margin-top:70px;padding:28px 0;color:var(--mu);font-size:14px;text-align:center}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><b>⚙ Kernel Lab</b> <span>· Procesos</span></div>
+  <nav id="nav">
+    <a href="#inicio">Inicio</a><a href="#concepto">Concepto</a><a href="#memoria">Memoria</a><a href="#ciclo">Ciclo de vida</a>
+    <a href="#creacion">Creación</a><a href="#contexto">Contexto</a><a href="#planificacion">Planificación</a>
+    <a href="#hilos">Hilos</a><a href="#ipc">Comunicación</a><a href="#concurrencia">Concurrencia</a>
+    <a href="#practica">Práctica</a><a href="#quiz">Quiz</a>
+  </nav>
+</header>
+<div class="prog" id="prog"></div>
+
+<main>
+
+<!-- ================= INICIO ================= -->
+<section id="inicio" class="hero">
+  <div>
+    <div class="kicker">Sistemas Operativos · Apuntes visuales</div>
+    <h1>Los <em>procesos</em>,<br>explicados y probados</h1>
+    <p class="lead">Qué son, cómo viven, cómo se reparten la CPU y cómo cooperan. Cada tema trae una demo que puedes tocar y un registro del sistema que te cuenta qué pasó.</p>
+    <div class="cta"><a class="btn pri" href="#concepto">Empezar ↓</a><a class="btn" href="#planificacion">Ir al simulador de planificación</a></div>
+    <div class="by">[Nombre del presentador] · [Curso / Docente] · [Fecha]</div>
+  </div>
+  <div class="mon">
+    <div class="bar"><span>MONITOR DE PROCESOS · SIMULADO</span><i>● EN VIVO</i></div>
+    <table class="tbl"><thead><tr><th>PID</th><th>Proceso</th><th>Estado</th><th>CPU (ticks)</th></tr></thead><tbody id="monBody"></tbody></table>
+    <p style="font-size:13px;color:var(--mu);margin:8px 0 6px">Una sola CPU: solo un proceso está <b>ejecutando</b> a la vez; los demás esperan o están bloqueados.</p>
+  </div>
+</section>
+
+<!-- ================= 01 CONCEPTO ================= -->
+<section id="concepto" class="sec">
+  <div class="kicker reveal">01 · Concepto</div>
+  <h2 class="reveal">Un proceso es un <em>programa en ejecución</em></h2>
+  <div class="rule"></div>
+  <p class="intro reveal">El programa es la receta (un archivo en disco, pasivo). El proceso es alguien cocinándola: usa memoria, CPU, archivos y dispositivos, y tiene un principio y un fin.</p>
+  <div class="g2 reveal">
+    <div class="card"><span class="sub">Programa</span><h3>Pasivo · vive en el disco</h3><p>Un archivo ejecutable (<code>notepad.exe</code>, <code>/bin/ls</code>). No consume CPU ni memoria mientras nadie lo ejecuta. Permanece hasta que lo borres.</p></div>
+    <div class="card accent"><span class="sub" style="color:var(--yellow)">Proceso</span><h3>Activo · vive en la RAM</h3><p>Una instancia en ejecución: tiene su memoria, su estado, su contador de programa y un PID. Nace, vive y termina. De un mismo programa pueden existir varios procesos.</p></div>
+  </div>
+
+  <div class="demo reveal">
+    <div class="demo-h"><h3>Un programa, muchos procesos</h3><span class="pill">Demo 1</span></div>
+    <div class="g2">
+      <div>
+        <div class="card" style="padding:16px 18px"><span class="sub">En disco</span><h3 style="font-size:19px">📄 notepad.exe</h3><p style="margin:0">Un solo archivo, sin PID.</p></div>
+        <div class="row" style="margin:14px 0"><button class="btn pri" id="c1run">▶ Ejecutar el programa</button><button class="btn" id="c1close">✕ Cerrar el último</button></div>
+        <div class="plist" id="c1list"></div>
+      </div>
+      <div class="logbox"><div class="logh"><span>REGISTRO DEL SISTEMA</span><b class="live">● EN VIVO</b></div><div class="log" id="c1log"></div></div>
+    </div>
+    <div class="tip"><b>Fíjate:</b> cada ejecución crea un proceso nuevo con su propio PID y su propia memoria, aunque el programa sea el mismo archivo.</div>
+  </div>
+</section>
+
+<!-- ================= 02 MEMORIA ================= -->
+<section id="memoria" class="sec">
+  <div class="kicker reveal">02 · Anatomía</div>
+  <h2 class="reveal">Un proceso por dentro: su <em>espacio de memoria</em></h2>
+  <div class="rule"></div>
+  <p class="intro reveal">Cuatro regiones: texto (código), datos, heap (memoria dinámica) y pila. Llama funciones, reserva memoria y mira cómo crecen. Haz clic en una región para ver qué guarda.</p>
+  <div class="demo reveal">
+    <div class="demo-h"><h3>Mapa de memoria del proceso</h3><span class="pill">Demo 2</span></div>
+    <div class="memwrap">
+      <div>
+        <div class="mem" id="mem"></div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn sm pri" id="mCall">↘ Llamar función</button>
+          <button class="btn sm" id="mRet">↖ return</button>
+          <button class="btn sm warn" id="mMalloc">malloc(64)</button>
+          <button class="btn sm" id="mFree">free()</button>
+          <button class="btn sm bad" id="mOver">♾ Recursión infinita</button>
+          <button class="btn sm" id="mReset">↺</button>
+        </div>
+      </div>
+      <div>
+<div class="code" id="memCode"><span class="ln2" data-seg="data"><span class="kw">int</span> contador = <span class="nu">0</span>;              <span class="cm">// DATOS (global)</span></span><span class="ln2" data-seg="text"><span class="kw">int</span> <span class="fn">suma</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) {      <span class="cm">// código → TEXTO</span></span><span class="ln2" data-seg="stack">    <span class="kw">int</span> r = a + b;             <span class="cm">// PILA (local)</span></span><span class="ln2" data-seg="stack">    <span class="kw">return</span> r;                   <span class="cm">// dirección de retorno → PILA</span></span><span class="ln2" data-seg="text">}</span><span class="ln2" data-seg="text"><span class="kw">int</span> <span class="fn">main</span>() {</span><span class="ln2" data-seg="heap">    <span class="kw">int</span> *v = <span class="fn">malloc</span>(<span class="nu">64</span>);     <span class="cm">// bloque en HEAP, v en PILA</span></span><span class="ln2" data-seg="stack">    contador = <span class="fn">suma</span>(<span class="nu">2</span>, <span class="nu">3</span>);</span><span class="ln2" data-seg="heap">    <span class="fn">free</span>(v);                   <span class="cm">// libera el heap</span></span><span class="ln2" data-seg="text">}</span></div>
+        <div class="msgbox" id="memMsg"><b>Haz clic en una región</b> del mapa para ver qué guarda y cuáles líneas del código le corresponden.</div>
+      </div>
+    </div>
+    <div class="logbox" style="margin-top:16px"><div class="logh"><span>REGISTRO DEL SISTEMA</span><b class="live">● EN VIVO</b></div><div class="log" id="mlog" style="height:120px"></div></div>
+  </div>
+</section>
+
+<!-- ================= 03 CICLO DE VIDA ================= -->
+<section id="ciclo" class="sec">
+  <div class="kicker reveal">03 · Ciclo de vida</div>
+  <h2 class="reveal">Estados y <em>PCB</em></h2>
+  <div class="rule"></div>
+  <p class="intro reveal">Mientras vive, un proceso cambia de estado. El sistema operativo guarda todo lo necesario para pausarlo y retomarlo en una ficha: el <b>PCB</b> (Process Control Block).</p>
+  <div class="g3 reveal" style="margin-bottom:6px">
+    <div class="card"><span class="sub">Nuevo</span><h3>Se está creando</h3><p>El SO le asigna PID y prepara su PCB y su memoria.</p></div>
+    <div class="card"><span class="sub">Listo · Ejecutando</span><h3>Quiere / tiene la CPU</h3><p>Listo espera turno. Ejecutando usa la CPU (uno por núcleo).</p></div>
+    <div class="card"><span class="sub">Bloqueado · Terminado</span><h3>Espera / ya acabó</h3><p>Bloqueado espera E/S o un evento. Terminado libera sus recursos.</p></div>
+  </div>
+
+  <div class="demo reveal">
+    <div class="demo-h"><h3>Mueve un proceso por sus estados</h3><span class="pill">Demo 3</span></div>
+    <div class="lc">
+      <div>
+        <div class="svgbox">
+<svg viewBox="0 0 960 340" role="img" aria-label="Diagrama de estados: nuevo, listo, ejecutando, bloqueado y terminado">
+  <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L10 5L0 10z" fill="#6f86b3"/></marker>
+  <marker id="arh" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L10 5L0 10z" fill="#f5c542"/></marker></defs>
+  <path id="e-nl" class="ed" d="M170 155H226" marker-end="url(#ar)"/>
+  <path id="e-le" class="ed" d="M380 138H516" marker-end="url(#ar)"/>
+  <path id="e-el" class="ed" d="M516 174H380" marker-end="url(#ar)"/>
+  <path id="e-et" class="ed" d="M690 155H786" marker-end="url(#ar)"/>
+  <path id="e-eb" class="ed" d="M605 192V285H527" marker-end="url(#ar)"/>
+  <path id="e-bl" class="ed" d="M373 285H305V192" marker-end="url(#ar)"/>
+  <text class="el" x="198" y="140" text-anchor="middle">admitir</text>
+  <text class="el" x="448" y="128" text-anchor="middle">despachar</text>
+  <text class="el" x="448" y="198" text-anchor="middle">expulsar</text>
+  <text class="el" x="738" y="140" text-anchor="middle">exit</text>
+  <text class="el" x="618" y="250">pide E/S</text>
+  <text class="el" x="212" y="262" text-anchor="end">termina E/S</text>
+  <g class="nd" id="n-nuevo"><rect x="20" y="120" width="150" height="70" rx="16"/><text x="95" y="152">Nuevo</text><text class="s" x="95" y="173">se crea</text></g>
+  <g class="nd" id="n-listo"><rect x="230" y="120" width="150" height="70" rx="16"/><text x="305" y="152">Listo</text><text class="s" x="305" y="173">espera la CPU</text></g>
+  <g class="nd" id="n-ejecutando"><rect x="520" y="120" width="170" height="70" rx="16"/><text x="605" y="152">Ejecutando</text><text class="s" x="605" y="173">usa la CPU</text></g>
+  <g class="nd" id="n-terminado"><rect x="790" y="120" width="150" height="70" rx="16"/><text x="865" y="152">Terminado</text><text class="s" x="865" y="173">libera recursos</text></g>
+  <g class="nd" id="n-bloqueado"><rect x="373" y="250" width="154" height="70" rx="16"/><text x="450" y="282">Bloqueado</text><text class="s" x="450" y="303">espera E/S</text></g>
+</svg>
+        </div>
+        <div class="trs" id="trs"></div>
+      </div>
+      <div class="pcb">
+        <h4>PCB · PROCESO PID 4242</h4>
+        <dl>
+          <dt>Estado</dt><dd id="pState"></dd>
+          <dt>PID / PPID</dt><dd>4242 / 800</dd>
+          <dt>Contador (PC)</dt><dd class="reg" id="pPC"></dd>
+          <dt>AX</dt><dd class="reg" id="pAX"></dd>
+          <dt>BX</dt><dd class="reg" id="pBX"></dd>
+          <dt>Prioridad</dt><dd>20</dd>
+          <dt>Memoria</dt><dd>12 MB</dd>
+          <dt>Archivos abiertos</dt><dd>3</dd>
+          <dt>Tiempo de CPU</dt><dd id="pCPU"></dd>
+        </dl>
+        <p class="note" id="pNote"></p>
+        <div class="row" style="margin-top:10px"><button class="btn sm pri" id="pTick">⏱ Ejecutar 1 instrucción</button><button class="btn sm" id="pReset">↺ Reiniciar</button></div>
+      </div>
+    </div>
+    <div class="logbox" style="margin-top:16px"><div class="logh"><span>REGISTRO DEL SISTEMA</span><b class="live">● EN VIVO</b></div><div class="log" id="lcLog" style="height:150px"></div></div>
+    <div class="tip"><b>Regla clave:</b> un proceso Bloqueado nunca pasa directo a Ejecutando. Cuando su E/S termina, vuelve a Listo y espera su turno (inténtalo con el botón punteado).</div>
+  </div>
+
+  <div class="card reveal" style="margin-top:22px">
+    <h3>Las transiciones</h3>
+    <div class="scroll"><table class="tbl">
+      <tr><th>Cambio</th><th>Se llama</th><th>¿Cuándo ocurre?</th></tr>
+      <tr><td>Nuevo → Listo</td><td>Admisión</td><td>El SO acepta el proceso y le crea su PCB.</td></tr>
+      <tr><td>Listo → Ejecutando</td><td>Despacho</td><td>El planificador le asigna la CPU.</td></tr>
+      <tr><td>Ejecutando → Listo</td><td>Expulsión</td><td>Se acaba su quantum o llega uno más importante.</td></tr>
+      <tr><td>Ejecutando → Bloqueado</td><td>Espera</td><td>Pide E/S o espera un evento.</td></tr>
+      <tr><td>Bloqueado → Listo</td><td>Despertar</td><td>La E/S terminó o el evento ocurrió.</td></tr>
+      <tr><td>Ejecutando → Terminado</td><td>Salida</td><td>El proceso acaba o sufre un error fatal.</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- ================= 04 CREACIÓN ================= -->
+<section id="creacion" class="sec">
+  <div class="kicker reveal">04 · Creación y terminación</div>
+  <h2 class="reveal">Procesos que crean procesos: <em>fork()</em></h2>
+  <div class="rule"></div>
+  <p class="intro reveal">Todo proceso nace de otro (su padre), así que forman un árbol. En Linux se crea con <code>fork()</code>; en Windows con <code>CreateProcess()</code>. Al terminar pueden quedar zombis o huérfanos.</p>
+  <div class="g2 reveal">
+    <div>
+<div class="code"><span class="cm">// Antes de fork() hay UN proceso</span>
+pid_t pid = <span class="fn">fork</span>();
+<span class="cm">// Ahora hay DOS: padre e hijo</span>
+<span class="kw">if</span> (pid == <span class="nu">0</span>) {
+    <span class="fn">printf</span>(<span class="st2">"Soy el HIJO\n"</span>);   <span class="cm">// fork devolvió 0</span>
+} <span class="kw">else</span> <span class="kw">if</span> (pid &gt; <span class="nu">0</span>) {
+    <span class="fn">wait</span>(NULL);                  <span class="cm">// el padre espera al hijo</span>
+    <span class="fn">printf</span>(<span class="st2">"Soy el PADRE\n"</span>); <span class="cm">// pid = PID del hijo</span>
+} <span class="kw">else</span> {
+    <span class="fn">perror</span>(<span class="st2">"fork"</span>);              <span class="cm">// -1: error</span>
+}</div>
+    </div>
+    <div class="g3" style="grid-template-columns:1fr">
+      <div class="card" style="padding:16px 20px"><span class="sub">Retorno de fork()</span><p style="margin:0"><b style="color:var(--tx)">0</b> → eres el hijo · <b style="color:var(--tx)">PID</b> → eres el padre · <b style="color:var(--tx)">-1</b> → falló.</p></div>
+      <div class="card" style="padding:16px 20px"><span class="sub">Zombi</span><p style="margin:0">Ya terminó, pero su padre aún no hizo <code>wait()</code>: solo queda su PCB.</p></div>
+      <div class="card" style="padding:16px 20px"><span class="sub">Huérfano</span><p style="margin:0">Su padre terminó antes: <code>init/systemd</code> lo adopta.</p></div>
+    </div>
+  </div>
+
+  <div class="demo reveal">
+    <div class="demo-h"><h3>Árbol de procesos</h3><span class="pill">Demo 4</span></div>
+    <p style="color:var(--mu);font-size:15px">Selecciona un proceso en el árbol y ejecuta una acción sobre él.</p>
+    <div class="row" style="margin-bottom:14px">
+      <button class="btn pri" id="fFork">fork()</button>
+      <button class="btn warn" id="fExit">exit()</button>
+      <button class="btn" id="fWait">wait()</button>
+      <button class="btn" id="fReset">↺ Reiniciar</button>
+    </div>
+    <div class="g2">
+      <div class="tree" id="tree"></div>
+      <div class="logbox"><div class="logh"><span>REGISTRO DEL SISTEMA</span><b class="live">● EN VIVO</b></div><div class="log" id="fLog" style="height:260px"></div></div>
+    </div>
+    <div class="tip"><b>Pruébalo:</b> haz fork() sobre <code>bash</code>, haz exit() en el hijo (queda zombi) y luego wait() en <code>bash</code> para cosecharlo. Después crea un hijo, hijo del hijo, y haz exit() en el del medio para ver un huérfano adoptado.</div>
+  </div>
+</section>
+
+<!-- ================= 05 CONTEXTO ================= -->
+<section id="contexto" class="sec">
+  <div class="kicker reveal">05 · Cambio de contexto</div>
+  <h2 class="reveal">Guardar uno, cargar otro: el <em>cambio de contexto</em></h2>
+  <div class="rule"></div>
+  <p class="intro reveal">Para que varios procesos compartan la CPU, el SO guarda el estado del que sale en su PCB y restaura el del que entra. Es como marcar la página de un libro antes de leer otro. Mientras tanto, nadie avanza: es tiempo perdido.</p>
+  <div class="demo reveal">
+    <div class="demo-h"><h3>Cambia el proceso en la CPU</h3><span class="pill">Demo 5</span></div>
+    <div class="ctx">
+      <div class="box" id="bA"><h4>PCB · PROCESO A <span class="st st-ejecutando" id="stA">ejecutando</span></h4><dl><dt>PC</dt><dd id="aPC"></dd><dt>SP</dt><dd id="aSP"></dd><dt>AX</dt><dd id="aAX"></dd></dl></div>
+      <div class="box act" id="bCPU"><h4>CPU · REGISTROS VIVOS <span id="cpuWho" style="color:var(--green)">A</span></h4><dl><dt>PC</dt><dd id="cPC"></dd><dt>SP</dt><dd id="cSP"></dd><dt>AX</dt><dd id="cAX"></dd></dl></div>
+      <div class="box" id="bB"><h4>PCB · PROCESO B <span class="st st-listo" id="stB">listo</span></h4><dl><dt>PC</dt><dd id="bPC"></dd><dt>SP</dt><dd id="bSP"></dd><dt>AX</dt><dd id="bAX"></dd></dl></div>
+    </div>
+    <div class="row" style="margin:16px 0"><button class="btn" id="xTick">⏱ Ejecutar 1 instrucción</button><button class="btn pri" id="xSwitch">⇄ Cambio de contexto</button><button class="btn" id="xReset">↺ Reiniciar</button></div>
+    <div class="g2">
+      <div class="logbox"><div class="logh"><span>REGISTRO DEL SISTEMA</span><b class="live">● EN VIVO</b></div><div class="log" id="xLog" style="height:190px"></div></div>
+      <div class="card" style="padding:18px 20px">
+        <span class="sub">¿Cuánto cuesta cambiar?</span>
+        <label class="f">Quantum: <b id="qv" style="color:var(--tx)">10</b> ms <input type="range" id="xq" min="1" max="100" value="10" style="flex:1"></label>
+        <div class="meter"><i id="mUse" style="background:var(--green)"></i><i id="mOv" style="background:var(--red)"></i></div>
+        <p style="margin:0;font-size:15px" id="xTxt"></p>
+        <p style="margin:6px 0 0;font-size:12.5px">Costo por cambio supuesto: 0,5 ms (valor ilustrativo).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 PLANIFICACIÓN ================= -->
+<section id="planificacion" class="sec">
+  <div class="kicker reveal">06 · Planificación de la CPU</div>
+  <h2 class="reveal">¿A quién le toca la CPU? Los <em>algoritmos</em></h2>
+  <div class="rule"></div>
+  <p class="intro reveal">El planificador de corto plazo elige entre los procesos listos. Cada algoritmo prioriza algo distinto: simplicidad, espera mínima, justicia o urgencia.</p>
+
+  <div class="g4 reveal">
+    <div class="card"><span class="sub">FCFS</span><h3>Primero en llegar</h3><p>Simple. Sufre el <b>efecto convoy</b>: un proceso largo retrasa a los cortos.</p></div>
+    <div class="card"><span class="sub">SJF / SRTF</span><h3>El más corto primero</h3><p>Mínima espera promedio. Necesita conocer la ráfaga; los largos pueden sufrir inanición.</p></div>
+    <div class="card"><span class="sub">Round Robin</span><h3>Turnos (quantum)</h3><p>Justo y con buena respuesta. Un quantum muy chico genera muchos cambios de contexto.</p></div>
+    <div class="card"><span class="sub">Prioridades</span><h3>Primero lo urgente</h3><p>Flexible. Riesgo de inanición; se corrige con <b>aging</b> (envejecimiento).</p></div>
+  </div>
+  <div class="tip reveal"><b>Métricas.</b> Retorno = fin − llegada · Espera = retorno − ráfaga · Respuesta = primera ejecución − llegada. Ráfaga: tiempo de CPU que necesita el proceso.</div>
+
+  <div class="demo reveal">
+    <div class="demo-h"><h3>Simulador de planificación</h3><span class="pill">Demo 6</span></div>
+    <div class="row" style="margin-bottom:14px">
+      <label class="f">Algoritmo
+        <select id="sAlgo">
+          <option value="fcfs">FCFS</option><option value="sjf">SJF (no apropiativo)</option><option value="srtf">SRTF (apropiativo)</option>
+          <option value="rr" selected>Round Robin</option><option value="pri">Prioridades (no apropiativo)</option><option value="prip">Prioridades (apropiativo)</option>
+        </select></label>
+      <label class="f" id="qWrap">Quantum <input type="number" id="sQ" min="1" max="20" value="2"></label>
+      <label class="f">Ejemplo
+        <select id="sPreset">
+          <option value="clase">Ejemplo de clase (5, 3, 2)</option><option value="convoy">Efecto convoy</option><option value="stagger">Llegadas escalonadas</option>
+        </select></label>
+    </div>
+    <div class="scroll"><table class="tbl ptable" id="ptbl"><thead><tr><th>Proceso</th><th>Llegada</th><th>Ráfaga</th><th>Prioridad<br><small style="text-transform:none;letter-spacing:0">(menor = más urgente)</small></th><th></th></tr></thead><tbody id="pbody"></tbody></table></div>
+    <div class="row" style="margin:14px 0"><button class="btn sm" id="sAdd">＋ Añadir proceso</button><button class="btn pri" id="sRun">▶ Simular</button><button class="btn" id="sCmp">⚖ Comparar todos</button></div>
+    <div id="sOut"></div>
+  </div>
+</section>
+
+<!-- ================= 07 HILOS ================= -->
+<section id="hilos" class="sec">
+  <div class="kicker reveal">07 · Hilos</div>
+  <h2 class="reveal">Hilos: procesos <em>ligeros</em></h2>
+  <div class="rule"></div>
+  <p class="intro reveal">Un hilo es una línea de ejecución dentro de un proceso. Los hilos de un proceso comparten código, datos y archivos, pero cada uno tiene su propia pila y sus registros.</p>
+  <div class="g2 reveal">
+    <div class="card"><h3>Proceso</h3><p>Unidad de <b>propiedad de recursos</b>: memoria, archivos, PID. Aislado de los demás. Crearlo es costoso.</p></div>
+    <div class="card"><h3>Hilo</h3><p>Unidad de <b>ejecución</b>: PC, registros y pila propios; comparte el resto con su proceso. Crearlo es barato, pero un error puede tumbar a todos.</p></div>
+  </div>
+  <div class="demo reveal">
+    <div class="demo-h"><h3>¿Qué pasa cuando algo falla?</h3><span class="pill">Demo 7</span></div>
+    <div class="g2">
+      <div class="pbx" id="tA"><h4 style="margin-bottom:4px">1 proceso con 3 hilos</h4><p style="font-size:14px;margin:0;color:var(--mu)">Memoria compartida</p>
+        <div class="thr"><div class="th">Hilo 1</div><div class="th" id="tA2">Hilo 2</div><div class="th">Hilo 3</div></div>
+        <div class="row" style="margin-top:12px"><button class="btn sm bad" id="tAfail">💥 El hilo 2 falla (segfault)</button></div>
+        <div id="tAres" style="margin-top:10px;font-size:15px"></div></div>
+      <div class="pbx" id="tB"><h4 style="margin-bottom:4px">3 procesos separados</h4><p style="font-size:14px;margin:0;color:var(--mu)">Memorias independientes</p>
+        <div class="thr"><div class="th">Proceso 1</div><div class="th" id="tB2">Proceso 2</div><div class="th">Proceso 3</div></div>
+        <div class="row" style="margin-top:12px"><button class="btn sm bad" id="tBfail">💥 El proceso 2 falla (segfault)</button></div>
+        <div id="tBres" style="margin-top:10px;font-size:15px"></div></div>
+    </div>
+    <div class="row" style="margin-top:14px"><button class="btn" id="tReset">↺ Reiniciar</button></div>
+    <div class="scroll" style="margin-top:14px"><table class="tbl">
+      <tr><th>Aspecto</th><th>Proceso</th><th>Hilo</th></tr>
+      <tr><td>Memoria</td><td>Separada</td><td>Compartida con su proceso</td></tr>
+      <tr><td>Creación</td><td>Lenta y costosa</td><td>Rápida y ligera</td></tr>
+      <tr><td>Comunicación</td><td>Necesita IPC</td><td>Variables compartidas</td></tr>
+      <tr><td>Si falla</td><td>Los demás siguen</td><td>Puede caer todo el proceso</td></tr>
+    </table></div>
+    <div class="tip"><b>Ejemplo:</b> un navegador usa un proceso por pestaña (aislamiento) y varios hilos dentro de cada una (descarga, dibujo, scripts).</div>
+  </div>
+</section>
+
+<!-- ================= 08 IPC ================= -->
+<section id="ipc" class="sec">
+  <div class="kicker reveal">08 · Comunicación entre procesos</div>
+  <h2 class="reveal">Procesos que se hablan: <em>IPC</em></h2>
+  <div class="rule"></div>
+  <p class="intro reveal">Como los procesos están aislados, necesitan mecanismos explícitos para intercambiar datos. Los dos modelos clásicos son el paso de mensajes y la memoria compartida.</p>
+  <div class="demo reveal">
+    <div class="demo-h"><h3>Tres formas de comunicarse</h3><span class="pill">Demo 8</span></div>
+    <div class="tabs" id="ipcTabs"><button class="tab on" data-t="msg">Paso de mensajes</button><button class="tab" data-t="shm">Memoria compartida</button><button class="tab" data-t="pipe">Tubería (pipe)</button></div>
+
+    <div id="t-msg">
+      <p style="color:var(--mu);font-size:15px">El mensaje viaja por el kernel con <code>send()</code> y <code>receive()</code>. Más lento, pero simple y sirve también entre computadoras.</p>
+      <div class="ipc"><div class="node2" id="mP1">P1 · emisor</div><span class="ar">→</span><div class="node2" id="mK">KERNEL</div><span class="ar">→</span><div class="node2" id="mP2">P2 · receptor</div></div>
+      <div class="row"><input type="text" id="mText" value="hola" maxlength="30" style="width:220px"><button class="btn pri" id="mSend">send(mensaje)</button></div>
+      <p class="lab">Buzón de P2</p><div class="inbox" id="inbox">(vacío)</div>
+    </div>
+
+    <div id="t-shm" style="display:none">
+      <p style="color:var(--mu);font-size:15px">Ambos procesos mapean la misma región de memoria. Es muy rápido (no pasa por el kernel en cada acceso), pero hay que <b>sincronizar</b>.</p>
+      <div class="ipc"><div class="node2">P1</div><span class="ar">⇄</span><div class="node2 on" style="min-width:200px">REGIÓN COMPARTIDA<br><span class="vbig" id="shV">0</span></div><span class="ar">⇄</span><div class="node2">P2</div></div>
+      <div class="row"><input type="number" id="shIn" value="42"><button class="btn pri" id="shW">P1 escribe</button><button class="btn" id="shR">P2 lee</button></div>
+      <div class="banner wa">Si P1 y P2 escriben a la vez sin protección, ocurre una condición de carrera (ver sección 09).</div>
+    </div>
+
+    <div id="t-pipe" style="display:none">
+      <p style="color:var(--mu);font-size:15px">En la terminal, <code>|</code> crea una tubería: la salida del primer proceso es la entrada del segundo.</p>
+      <div class="cmd"><span>$ ls | grep txt</span><button id="pRun">▶ Ejecutar</button></div>
+      <div class="g2">
+        <div><p class="lab">Salida de ls (proceso 1)</p><div class="inbox" id="pOut1">—</div></div>
+        <div><p class="lab">Salida de grep (proceso 2)</p><div class="inbox" id="pOut2">—</div></div>
+      </div>
+    </div>
+
+    <div class="logbox" style="margin-top:16px"><div class="logh"><span>REGISTRO DEL SISTEMA</span><b class="live">● EN VIVO</b></div><div class="log" id="iLog" style="height:130px"></div></div>
+    <div class="chips tip" style="margin-top:16px"><b>Otros mecanismos:</b> colas de mensajes, sockets (también por red), señales y archivos mapeados en memoria.</div>
+  </div>
+</section>
+
+<!-- ================= 09 CONCURRENCIA ================= -->
+<section id="concurrencia" class="sec">
+  <div class="kicker reveal">09 · Sincronización</div>
+  <h2 class="reveal">Cuando compiten: <em>carreras</em> e <em>interbloqueos</em></h2>
+  <div class="rule"></div>
+  <p class="intro reveal">Si varios procesos o hilos tocan datos compartidos, el resultado puede depender del orden en que se intercalen. La <b>sección crítica</b> es el código que toca esos datos: solo uno puede estar dentro a la vez (exclusión mutua).</p>
+
+  <div class="demo reveal">
+    <div class="demo-h"><h3>Condición de carrera: <code>contador++</code></h3><span class="pill">Demo 9a</span></div>
+    <p style="color:var(--mu);font-size:15px"><code>contador++</code> no es una sola operación: son tres (LOAD, ADD, STORE). Si dos hilos se intercalan, se pierde una actualización.</p>
+    <div class="g2">
+      <div>
+        <div class="scroll"><table class="tbl"><thead><tr><th>Paso</th><th>Hilo</th><th>Operación</th><th>contador</th></tr></thead><tbody id="rBody"></tbody></table></div>
+        <div class="row" style="margin-top:12px"><button class="btn pri" id="rNext">Siguiente paso →</button><button class="btn" id="rReset">↺</button></div>
+        <div id="rBan"></div>
+      </div>
+      <div class="card" style="padding:18px 20px">
+        <span class="sub">Prueba real: 2 hilos × <span id="nv">1000</span> incrementos</span>
+        <input type="range" id="rN" min="100" max="5000" step="100" value="1000" style="width:100%">
+        <div class="row" style="margin:12px 0"><button class="btn bad" id="rUn">Sin mutex</button><button class="btn pri" id="rMu">Con mutex</button></div>
+        <div id="rRes" style="font-size:16px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo reveal">
+    <div class="demo-h"><h3>Interbloqueo (deadlock)</h3><span class="pill">Demo 9b</span></div>
+    <p style="color:var(--mu);font-size:15px">Cada proceso retiene un recurso y espera el que tiene el otro: nadie avanza. Es como dos autos en un puente de un carril.</p>
+    <label class="f" style="margin-bottom:12px"><input type="checkbox" id="dOrder"> Aplicar orden global de recursos (siempre pedir A y luego B)</label>
+    <div class="g2">
+      <div class="scroll"><table class="tbl"><thead><tr><th>Paso</th><th>Acción</th><th>Resultado</th></tr></thead><tbody id="dBody"></tbody></table></div>
+      <div>
+        <div class="ipc"><div class="node2" id="dP1">P1</div><div class="node2" id="dA">Recurso A<br><small id="dAo" style="color:var(--mu)">libre</small></div><div class="node2" id="dB">Recurso B<br><small id="dBo" style="color:var(--mu)">libre</small></div><div class="node2" id="dP2">P2</div></div>
+        <div class="row"><button class="btn pri" id="dNext">Siguiente paso →</button><button class="btn" id="dReset">↺</button></div>
+        <div id="dBan"></div>
+      </div>
+    </div>
+    <div class="g3" style="margin-top:20px">
+      <div class="card" style="padding:16px 20px"><span class="sub">Inanición</span><p style="margin:0">Un proceso espera indefinidamente porque otros siempre pasan delante. Solución: <b>aging</b>.</p></div>
+      <div class="card" style="padding:16px 20px"><span class="sub">4 condiciones (Coffman)</span><p style="margin:0">Exclusión mutua · retención y espera · no apropiación · espera circular. Si falta una, no hay interbloqueo.</p></div>
+      <div class="card" style="padding:16px 20px"><span class="sub">Herramientas</span><p style="margin:0">Mutex, semáforos, monitores y variables de condición.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 10 PRÁCTICA ================= -->
+<section id="practica" class="sec">
+  <div class="kicker reveal">10 · Práctica</div>
+  <h2 class="reveal">Míralo en <em>tu computador</em></h2>
+  <div class="rule"></div>
+  <p class="intro reveal">Todo lo anterior existe en tu sistema ahora mismo. Copia los comandos y compara lo que ves con lo aprendido.</p>
+  <div class="g2 reveal">
+    <div class="card"><span class="sub">Windows · PowerShell</span>
+      <p class="lab">Listar procesos</p><div class="cmd"><span>Get-Process</span><button>Copiar</button></div>
+      <p class="lab">Ver los de un programa</p><div class="cmd"><span>Get-Process notepad</span><button>Copiar</button></div>
+      <p class="lab">Terminar uno</p><div class="cmd"><span>Stop-Process -Id 1234</span><button>Copiar</button></div>
+      <p class="lab">Ordenar por CPU</p><div class="cmd"><span>Get-Process | Sort-Object CPU -Desc | Select -First 5</span><button>Copiar</button></div>
+      <p style="margin-top:12px;font-size:14px">También: Administrador de tareas (Ctrl+Shift+Esc) → pestaña <b>Detalles</b>.</p></div>
+    <div class="card"><span class="sub">Linux · Terminal</span>
+      <p class="lab">Listar procesos</p><div class="cmd"><span>ps aux</span><button>Copiar</button></div>
+      <p class="lab">Ver en vivo</p><div class="cmd"><span>top</span><button>Copiar</button></div>
+      <p class="lab">Ver el árbol</p><div class="cmd"><span>pstree -p</span><button>Copiar</button></div>
+      <p class="lab">Terminar / cambiar prioridad</p><div class="cmd"><span>kill 1234</span><button>Copiar</button></div><div class="cmd"><span>renice 10 -p 1234</span><button>Copiar</button></div>
+      <p style="margin-top:12px;font-size:14px">Estados en <code>ps</code>: R (ejecutando/listo), S (dormido), D (E/S), Z (zombi).</p></div>
+  </div>
+  <div class="card reveal" style="margin-top:20px"><span class="sub">Python · crear procesos</span>
+<div class="code"><span class="kw">import</span> os, time
+pid = os.<span class="fn">fork</span>()          <span class="cm"># solo en Linux/macOS</span>
+<span class="kw">if</span> pid == <span class="nu">0</span>:
+    <span class="fn">print</span>(<span class="st2">"hijo"</span>, os.<span class="fn">getpid</span>(), <span class="st2">"padre"</span>, os.<span class="fn">getppid</span>()); os.<span class="fn">_exit</span>(<span class="nu">0</span>)
+<span class="kw">else</span>:
+    os.<span class="fn">wait</span>(); <span class="fn">print</span>(<span class="st2">"el hijo terminó"</span>)</div>
+  </div>
+  <div class="tip reveal"><b>Tarea:</b> abre el Administrador de tareas, elige un proceso y anota su PID, su estado y su memoria. Luego abre y cierra el Bloc de notas y observa cómo aparece y desaparece su proceso.</div>
+</section>
+
+<!-- ================= 11 QUIZ ================= -->
+<section id="quiz" class="sec">
+  <div class="kicker reveal">11 · Repaso</div>
+  <h2 class="reveal">Pon a prueba lo <em>aprendido</em></h2>
+  <div class="rule"></div>
+  <div id="quiz"></div>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><span class="score" id="qScore">Puntaje: 0 / 8</span><button class="btn" id="qReset">↺ Reintentar</button></div>
+</section>
+
+<!-- ================= RESUMEN ================= -->
+<section id="resumen" class="sec">
+  <div class="kicker reveal">Cierre</div>
+  <h2 class="reveal">Lo esencial en <em>seis ideas</em></h2>
+  <div class="rule"></div>
+  <div class="g3 reveal">
+    <div class="card"><span class="sub">01</span><p>Un proceso es un programa en ejecución, con su memoria, su estado y su PCB.</p></div>
+    <div class="card"><span class="sub">02</span><p>Vive entre cinco estados: nuevo, listo, ejecutando, bloqueado y terminado.</p></div>
+    <div class="card"><span class="sub">03</span><p>Nace con fork() o CreateProcess y muere con exit o por un error.</p></div>
+    <div class="card"><span class="sub">04</span><p>El cambio de contexto guarda y restaura el estado, pero cuesta tiempo.</p></div>
+    <div class="card"><span class="sub">05</span><p>Los planificadores (FCFS, SJF, Round Robin, prioridades) reparten la CPU: no hay uno «mejor» para todo.</p></div>
+    <div class="card"><span class="sub">06</span><p>Hilos, IPC y sincronización permiten cooperar sin chocar.</p></div>
+  </div>
+  <div class="card reveal" style="margin-top:20px"><span class="sub">Bibliografía</span>
+    <p>Silberschatz, Galvin y Gagne. <i>Fundamentos de sistemas operativos.</i></p>
+    <p>Tanenbaum y Bos. <i>Sistemas operativos modernos.</i></p>
+    <p style="margin:0">Stallings. <i>Sistemas operativos: aspectos internos y principios de diseño.</i></p></div>
+</section>
+</main>
+<footer>Kernel Lab · Procesos · [Nombre del presentador] · Sistemas Operativos</footer>
+
+<script>
+/* ================= utilidades ================= */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const hex=(n,w=4)=>'0x'+(n>>>0).toString(16).toUpperCase().padStart(w,'0');
+const fmt=n=>(Math.round(n*100)/100).toFixed(2).replace('.',',');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function Log(id){
+  const el=$(id);
+  return {
+    add(m,c){const d=document.createElement('div');d.className='ln '+(c||'');d.innerHTML='<span class="ts">'+new Date().toTimeString().slice(0,8)+'</span>'+m;el.appendChild(d);while(el.children.length>80)el.removeChild(el.firstChild);el.scrollTop=el.scrollHeight;},
+    clear(){el.innerHTML='';}
+  };
+}
+const badge=s=>'<span class="st st-'+s+'">'+s+'</span>';
+
+/* ================= navegación ================= */
+(function(){
+  const links=$$('#nav a'); const secs=links.map(a=>$(a.getAttribute('href')));
+  const prog=$('#prog');
+  function onScroll(){
+    const h=document.documentElement; prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+    let cur=0; secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<140)cur=i;});
+    links.forEach((a,i)=>a.classList.toggle('on',i===cur));
+    const on=links[cur]; if(on&&on.scrollIntoView){const n=$('#nav');n.scrollTo({left:on.offsetLeft-80,behavior:'smooth'});}
+  }
+  addEventListener('scroll',onScroll,{passive:true}); onScroll();
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.08});
+  $$('.reveal').forEach(el=>io.observe(el));
+})();
+
+/* ================= hero: monitor en vivo ================= */
+(function(){
+  const P=[{pid:1,n:'systemd',s:'bloqueado',t:12},{pid:812,n:'chrome',s:'ejecutando',t:80},{pid:845,n:'code',s:'listo',t:41},{pid:901,n:'spotify',s:'listo',t:19},{pid:933,n:'python',s:'bloqueado',t:7},{pid:977,n:'explorer',s:'listo',t:23}];
+  const body=$('#monBody');
+  function draw(){body.innerHTML=P.map(p=>'<tr><td class="num">'+p.pid+'</td><td>'+p.n+'</td><td>'+badge(p.s)+'</td><td class="num">'+p.t+'</td></tr>').join('');}
+  function tick(){
+    const run=P.find(p=>p.s==='ejecutando');
+    if(run){run.t++; if(Math.random()<.45){run.s=Math.random()<.4?'bloqueado':'listo';}}
+    P.forEach(p=>{if(p.s==='bloqueado'&&Math.random()<.4)p.s='listo';});
+    if(!P.some(p=>p.s==='ejecutando')){const l=P.filter(p=>p.s==='listo'&&p!==run);const pool=l.length?l:P.filter(p=>p.s==='listo');if(pool.length)pool[Math.floor(Math.random()*pool.length)].s='ejecutando';}
+    draw();
+  }
+  draw(); setInterval(tick,1100);
+})();
+
+/* ================= 01 programa → procesos ================= */
+(function(){
+  const log=Log('#c1log'); let pid=4100; const list=[]; const el=$('#c1list');
+  function draw(){el.innerHTML=list.length?list.map(p=>'<div class="pi"><span>notepad.exe <small>PID '+p.pid+'</small></span><span>'+p.mb+' MB · '+badge('ejecutando').replace('ejecutando','ejecutando')+'</span></div>').join(''):'<div class="pi" style="color:var(--mu)">Ningún proceso en ejecución.</div>';}
+  $('#c1run').onclick=()=>{
+    if(list.length>=6){log.add('Demasiadas ventanas para la demo.','wa');return;}
+    pid+=Math.floor(Math.random()*40)+7; const p={pid,mb:Math.floor(Math.random()*8)+6}; list.push(p);
+    log.add('El SO carga <b>notepad.exe</b> del disco y crea el proceso <b>PID '+p.pid+'</b>.','ok');
+    log.add('Le asigna su propio espacio de memoria ('+p.mb+' MB) y su PCB.','in'); draw();
+  };
+  $('#c1close').onclick=()=>{const p=list.pop(); if(!p){log.add('No hay procesos que cerrar.','wa');return;} log.add('PID '+p.pid+' termina: se libera su memoria y se borra su PCB.','er'); draw();};
+  log.add('El programa <b>notepad.exe</b> está en el disco. Todavía no es un proceso.'); draw();
+})();
+
+/* ================= 02 memoria ================= */
+(function(){
+  const log=Log('#mlog'); const root=$('#mem'); const msg=$('#memMsg'); const CAP=8192;
+  const DESC={
+    stack:['Pila (stack)','Guarda variables locales, parámetros y direcciones de retorno. Cada llamada a función apila un <b>marco</b>; al hacer return se desapila. Crece hacia abajo ↓. Si se agota: <b>stack overflow</b>.'],
+    heap:['Montículo (heap)','Memoria dinámica que el programa pide mientras corre (<code>malloc</code>, <code>new</code>) y debe liberar (<code>free</code>). Crece hacia arriba ↑. Si no se libera: <b>fuga de memoria</b>.'],
+    data:['Datos','Variables globales y estáticas, con su tamaño fijado al compilar. Viven mientras el proceso exista.'],
+    text:['Texto (código)','Las instrucciones del programa en lenguaje máquina. Es de <b>solo lectura</b> y puede compartirse entre procesos del mismo programa.']
+  };
+  let frames,heap,sel,addr,depth;
+  function reset(){frames=[{n:'main()',v:'v, i'}];heap=[];sel=null;addr=0x5A10;depth=0;}
+  function used(){return frames.length*256+heap.reduce((a,b)=>a+b.sz,0);}
+  function draw(){
+    const free=Math.max(0,CAP-used());
+    root.innerHTML=
+      '<div class="seg stack'+(sel==='stack'?' sel':'')+'" data-s="stack"><h4>Pila (stack) <small>↓ crece · altas</small></h4>'+frames.map(f=>'<div class="fr">'+esc(f.n)+' · '+esc(f.v)+'</div>').join('')+'</div>'
+     +'<div class="seg free">espacio libre · '+free+' bytes</div>'
+     +'<div class="seg heap'+(sel==='heap'?' sel':'')+'" data-s="heap"><h4>Heap <small>↑ crece</small></h4>'+(heap.length?heap.slice().reverse().map(b=>'<div class="hb">'+hex(b.a)+' · '+b.sz+' B</div>').join(''):'<div style="font:13px var(--mono);color:var(--mu);margin-top:6px">(vacío)</div>')+'</div>'
+     +'<div class="seg data'+(sel==='data'?' sel':'')+'" data-s="data"><h4>Datos <small>contador = 0</small></h4></div>'
+     +'<div class="seg text'+(sel==='text'?' sel':'')+'" data-s="text"><h4>Texto (código) <small>bajas · solo lectura</small></h4></div>';
+    $$('.seg[data-s]',root).forEach(s=>s.onclick=()=>select(s.dataset.s));
+    $$('#memCode .ln2').forEach(l=>l.classList.toggle('hl',l.dataset.seg===sel));
+  }
+  function select(s){sel=s;msg.innerHTML='<b>'+DESC[s][0]+'.</b> '+DESC[s][1];draw();}
+  $('#mCall').onclick=()=>{
+    if(frames.length>=10){log.add('<b>STACK OVERFLOW</b>: la pila se agotó. El SO envía SIGSEGV y termina el proceso.','er');return;}
+    depth++; frames.push({n:'suma('+depth+')',v:'a, b, r, ret'}); log.add('Llamada a <b>suma()</b>: se apila un marco ('+frames.length+' en la pila).','in'); draw();
+  };
+  $('#mRet').onclick=()=>{
+    if(frames.length<=1){log.add('Solo queda main(): no hay a dónde volver.','wa');return;}
+    const f=frames.pop(); log.add('return desde <b>'+esc(f.n)+'</b>: se desapila su marco.','ok'); draw();
+  };
+  $('#mMalloc').onclick=()=>{
+    if(used()+64>CAP){log.add('malloc devuelve NULL: no queda memoria.','er');return;}
+    heap.push({a:addr,sz:64}); log.add('<b>malloc(64)</b> reserva un bloque en el heap en '+hex(addr)+'.','ok'); addr+=0x40; draw();
+  };
+  $('#mFree').onclick=()=>{
+    const b=heap.pop(); if(!b){log.add('No hay bloques que liberar.','wa');return;}
+    log.add('<b>free('+hex(b.a)+')</b>: bloque devuelto al heap.','ok'); draw();
+  };
+  $('#mOver').onclick=async()=>{
+    log.add('Función recursiva sin caso base…','wa');
+    while(frames.length<10){depth++;frames.push({n:'f('+depth+')',v:'n, ret'});draw();await sleep(140);}
+    log.add('<b>STACK OVERFLOW</b>: la pila se llenó. El SO termina el proceso (SIGSEGV).','er');
+  };
+  $('#mReset').onclick=()=>{reset();draw();log.add('Proceso reiniciado.');};
+  reset(); draw(); log.add('Proceso cargado: texto y datos listos, pila con <b>main()</b>.');
+})();
+
+/* ================= 03 ciclo de vida + PCB ================= */
+(function(){
+  const log=Log('#lcLog');
+  const TR=[
+    {f:'nuevo',t:'listo',l:'Admitir',e:'e-nl',m:'El SO <b>admite</b> el proceso: le crea su PCB y lo pone en la cola de listos.'},
+    {f:'listo',t:'ejecutando',l:'Despachar',e:'e-le',m:'El <b>planificador</b> lo elige y el despachador restaura sus registros: ya usa la CPU.'},
+    {f:'ejecutando',t:'listo',l:'Expulsar (fin de quantum)',e:'e-el',m:'Se acabó su quantum: se guardan sus registros en el PCB y vuelve a la cola de listos.'},
+    {f:'ejecutando',t:'bloqueado',l:'Pedir E/S',e:'e-eb',m:'Pidió una lectura de disco: no puede avanzar hasta que termine, así que libera la CPU.'},
+    {f:'bloqueado',t:'listo',l:'Termina la E/S',e:'e-bl',m:'Llegó la interrupción del disco: el proceso <b>despierta</b> pero debe hacer cola en Listos.'},
+    {f:'ejecutando',t:'terminado',l:'Terminar (exit)',e:'e-et',m:'El proceso terminó: el SO libera su memoria, cierra sus archivos y borra su PCB.'}
+  ];
+  let S,pc,ax,bx,cpu,last;
+  const trs=$('#trs');
+  function reset(){S='nuevo';pc=0x1000;ax=0x0000;bx=0x0000;cpu=0;last=null;}
+  function draw(){
+    ['nuevo','listo','ejecutando','bloqueado','terminado'].forEach(s=>$('#n-'+s).classList.toggle('on',s===S));
+    $$('.ed').forEach(e=>e.classList.toggle('hot',e.id===last));
+    $$('.ed').forEach(e=>e.setAttribute('marker-end',e.id===last?'url(#arh)':'url(#ar)'));
+    $('#pState').innerHTML=badge(S); $('#pPC').textContent=hex(pc); $('#pAX').textContent=hex(ax); $('#pBX').textContent=hex(bx); $('#pCPU').textContent=cpu+' ms';
+    $('#pNote').textContent=S==='ejecutando'?'Registros en vivo: están en la CPU, el PCB los actualizará al salir.':(S==='nuevo'?'Aún no hay estado de CPU que guardar.':(S==='terminado'?'El PCB será eliminado.':'Registros guardados en el PCB: se restauran al volver a ejecutar.'));
+    trs.innerHTML='';
+    TR.forEach(t=>{const b=document.createElement('button');b.className='btn sm';b.textContent=t.l;b.disabled=t.f!==S;b.onclick=()=>go(t);trs.appendChild(b);});
+    const bad=document.createElement('button');bad.className='btn sm bad';bad.style.borderStyle='dashed';bad.textContent='✗ Saltar de Bloqueado a Ejecutando';
+    bad.onclick=()=>log.add('<b>Transición inválida</b>: aunque la E/S terminó, la CPU la asigna el planificador. Debe pasar por <b>Listo</b>.','er');
+    bad.disabled=S!=='bloqueado'; trs.appendChild(bad);
+    $('#pTick').disabled=false;
+  }
+  function go(t){
+    if(t.f==='ejecutando'&&t.t!=='ejecutando') log.add('Guardando PC y registros en el PCB…','wa');
+    if(t.t==='ejecutando') log.add('Restaurando PC y registros desde el PCB…','wa');
+    S=t.t; last=t.e; log.add(badge(t.f)+' → '+badge(t.t)+' · '+t.m,'ok'); draw();
+  }
+  $('#pTick').onclick=()=>{
+    if(S!=='ejecutando'){log.add('El proceso está en <b>'+S+'</b>: no tiene la CPU, no avanza.','wa');return;}
+    pc+=4;ax=(ax+Math.floor(Math.random()*97)+1)&0xFFFF;bx=(bx^Math.floor(Math.random()*0xFFFF))&0xFFFF;cpu++;
+    log.add('Instrucción ejecutada · PC = '+hex(pc),'in'); draw();
+  };
+  $('#pReset').onclick=()=>{reset();log.clear();log.add('Se crea un proceso nuevo.');draw();};
+  reset(); draw(); log.add('Se crea un proceso nuevo. Está en estado <b>Nuevo</b>: usa los botones para moverlo.');
+})();
+
+/* ================= 04 fork() ================= */
+(function(){
+  const log=Log('#fLog'); const treeEl=$('#tree');
+  let P,sel,next;
+  function reset(){P={1:{pid:1,pp:0,n:'systemd',z:false},800:{pid:800,pp:1,n:'bash',z:false}};sel=800;next=910;}
+  const kids=pid=>Object.values(P).filter(p=>p.pp===pid).sort((a,b)=>a.pid-b.pid);
+  function draw(){
+    let html='';
+    (function walk(pid,pref,last,root){
+      const p=P[pid];
+      const bran=root?'':pref+(last?'└─ ':'├─ ');
+      html+='<div class="tn'+(pid===sel?' sel':'')+'" data-p="'+pid+'"><span class="br">'+bran+'</span><span>'+esc(p.n)+' <small style="color:var(--mu)">(PID '+p.pid+')</small></span>'+(p.z?'<span class="zb">zombi</span>':'')+(p.adopt?'<span class="ab">adoptado</span>':'')+'</div>';
+      const ks=kids(pid); const np=root?'':pref+(last?'   ':'│  ');
+      ks.forEach((k,i)=>walk(k.pid,np,i===ks.length-1,false));
+    })(1,'',true,true);
+    treeEl.innerHTML=html;
+    $$('.tn',treeEl).forEach(n=>n.onclick=()=>{sel=+n.dataset.p;draw();});
+  }
+  $('#fFork').onclick=()=>{
+    const p=P[sel]; if(p.z){log.add('Un proceso zombi no puede ejecutar fork().','er');return;}
+    if(Object.keys(P).length>=12){log.add('Demo limitada a 12 procesos.','wa');return;}
+    const c={pid:next++,pp:sel,n:'hijo',z:false}; P[c.pid]=c;
+    log.add('PID '+p.pid+' llama a <b>fork()</b>. Se crea el PID '+c.pid+'.','ok');
+    log.add('fork() devuelve <b>'+c.pid+'</b> en el padre y <b>0</b> en el hijo.','in'); draw();
+  };
+  $('#fExit').onclick=()=>{
+    const p=P[sel]; if(p.pid===1){log.add('El proceso init nunca termina mientras el sistema esté encendido.','er');return;}
+    if(p.z){log.add('Ya es un zombi.','wa');return;}
+    const hs=kids(p.pid);
+    hs.forEach(h=>{h.pp=1;h.adopt=true;});
+    if(hs.length){log.add('Los hijos de PID '+p.pid+' quedan <b>huérfanos</b> y <b>init (PID 1)</b> los adopta.','wa');
+      hs.filter(h=>h.z).forEach(h=>{delete P[h.pid];log.add('init cosecha al zombi PID '+h.pid+' (wait automático).','ok');});}
+    if(p.pp===1){delete P[p.pid];log.add('PID '+p.pid+' termina; su padre es init y lo cosecha de inmediato.','ok');sel=800;}
+    else{p.z=true;log.add('PID '+p.pid+' llama a <b>exit()</b> y queda como <b>zombi</b>: su padre (PID '+p.pp+') aún no hizo wait().','er');sel=p.pp;}
+    if(!P[sel])sel=800; draw();
+  };
+  $('#fWait').onclick=()=>{
+    const p=P[sel]; if(p.z){log.add('Un zombi no puede llamar a wait().','er');return;}
+    const hs=kids(p.pid); const z=hs.find(h=>h.z);
+    if(z){delete P[z.pid];log.add('PID '+p.pid+' llama a <b>wait()</b>: cosecha al zombi PID '+z.pid+' y su PCB se elimina.','ok');draw();}
+    else if(hs.length)log.add('PID '+p.pid+' llama a wait(): <b>se bloquea</b> hasta que algún hijo termine.','wa');
+    else log.add('PID '+p.pid+' no tiene hijos: wait() falla.','wa');
+  };
+  $('#fReset').onclick=()=>{reset();log.clear();log.add('Árbol reiniciado.');draw();};
+  reset(); draw(); log.add('Hay dos procesos: <b>systemd</b> (PID 1) y <b>bash</b> (PID 800). Selecciona bash y pulsa fork().');
+})();
+
+/* ================= 05 cambio de contexto ================= */
+(function(){
+  const log=Log('#xLog'); let A,B,cpu,who,busy;
+  function reset(){A={pc:0x1000,sp:0x7FF0,ax:0x0010};B={pc:0x2000,sp:0x6FF0,ax:0x00A5};cpu={...A};who='A';busy=false;}
+  function setBox(){
+    $('#aPC').textContent=hex(A.pc);$('#aSP').textContent=hex(A.sp);$('#aAX').textContent=hex(A.ax);
+    $('#bPC').textContent=hex(B.pc);$('#bSP').textContent=hex(B.sp);$('#bAX').textContent=hex(B.ax);
+    $('#cPC').textContent=hex(cpu.pc);$('#cSP').textContent=hex(cpu.sp);$('#cAX').textContent=hex(cpu.ax);
+    $('#cpuWho').textContent=who;
+    $('#stA').className='st st-'+(who==='A'?'ejecutando':'listo');$('#stA').textContent=who==='A'?'ejecutando':'listo';
+    $('#stB').className='st st-'+(who==='B'?'ejecutando':'listo');$('#stB').textContent=who==='B'?'ejecutando':'listo';
+    $('#bA').classList.toggle('act',who==='A');$('#bB').classList.toggle('act',who==='B');
+  }
+  const fl=async id=>{const e=$(id);e.classList.add('flash');await sleep(550);e.classList.remove('flash');};
+  $('#xTick').onclick=()=>{if(busy)return;cpu.pc+=4;cpu.ax=(cpu.ax+7)&0xFFFF;cpu.sp-=2;log.add('Proceso '+who+' ejecuta 1 instrucción · PC = '+hex(cpu.pc),'in');setBox();};
+  $('#xSwitch').onclick=async()=>{
+    if(busy)return;busy=true; const from=who, to=who==='A'?'B':'A'; const src=from==='A'?A:B, dst=to==='A'?A:B;
+    log.add('⏰ Interrupción de reloj: se acabó el quantum de <b>'+from+'</b>.','wa'); await sleep(450);
+    log.add('1) Guardar el estado de '+from+' en su PCB…','in'); Object.assign(src,cpu); setBox(); await fl(from==='A'?'#bA':'#bB');
+    log.add('2) El planificador elige a <b>'+to+'</b>.','in'); await sleep(350);
+    log.add('3) Cargar el estado de '+to+' desde su PCB…','in'); Object.assign(cpu,dst); who=to; setBox(); await fl('#bCPU');
+    log.add('Cambio completo: ahora ejecuta <b>'+to+'</b>. Ese tiempo no hizo avanzar a ningún programa.','ok'); busy=false;
+  };
+  $('#xReset').onclick=()=>{reset();log.clear();log.add('Reiniciado.');setBox();};
+  const q=$('#xq'); const COST=0.5;
+  function overhead(){
+    const v=+q.value; $('#qv').textContent=v; const ov=COST/(v+COST)*100;
+    $('#mUse').style.width=(100-ov)+'%';$('#mOv').style.width=ov+'%';
+    $('#xTxt').innerHTML='Con quantum de <b>'+v+' ms</b>, el <b style="color:var(--red)">'+fmt(ov)+' %</b> del tiempo se va en cambiar de contexto y el <b style="color:var(--green)">'+fmt(100-ov)+' %</b> en trabajo útil.'+(ov>10?' <b>Demasiados cambios.</b>':'')+(v>=60?' (Quantum grande: casi sin overhead, pero la respuesta empeora.)':'');
+  }
+  q.oninput=overhead; overhead();
+  reset(); setBox(); log.add('El proceso <b>A</b> está ejecutando; <b>B</b> espera su turno con su estado guardado.');
+})();
+
+/* ================= 06 planificación ================= */
+(function(){
+  const COL=['#4f9dff','#ff9f43','#2dd4bf','#f5c542','#c084fc','#ff6b6b','#4ade80'];
+  const NAMES={fcfs:'FCFS',sjf:'SJF',srtf:'SRTF',rr:'Round Robin',pri:'Prioridades',prip:'Prioridades (apropiativo)'};
+  const PRESETS={
+    clase:[[0,5,3],[0,3,1],[0,2,2]],
+    convoy:[[0,20,2],[1,2,1],[2,2,3],[3,3,2]],
+    stagger:[[0,8,2],[1,4,1],[2,9,3],[3,5,2]]
+  };
+  let ps=[];
+  function load(k){ps=PRESETS[k].map((r,i)=>({name:'P'+(i+1),arr:r[0],burst:r[1],pri:r[2]}));drawTable();}
+  function drawTable(){
+    $('#pbody').innerHTML=ps.map((p,i)=>'<tr><td><span class="dot" style="background:'+COL[i%COL.length]+'"></span><b>'+p.name+'</b></td>'
+      +'<td><input type="number" min="0" max="30" value="'+p.arr+'" data-i="'+i+'" data-k="arr"></td>'
+      +'<td><input type="number" min="1" max="30" value="'+p.burst+'" data-i="'+i+'" data-k="burst"></td>'
+      +'<td><input type="number" min="1" max="9" value="'+p.pri+'" data-i="'+i+'" data-k="pri"></td>'
+      +'<td><button class="btn sm bad" data-del="'+i+'">✕</button></td></tr>').join('');
+    $$('#pbody input').forEach(inp=>inp.onchange=()=>{let v=parseInt(inp.value,10);if(isNaN(v))v=0;const k=inp.dataset.k;v=Math.max(k==='burst'||k==='pri'?1:0,Math.min(30,v));ps[+inp.dataset.i][k]=v;inp.value=v;});
+    $$('#pbody [data-del]').forEach(b=>b.onclick=()=>{if(ps.length<=1)return;ps.splice(+b.dataset.del,1);ps.forEach((p,i)=>p.name='P'+(i+1));drawTable();});
+  }
+  function simulate(ps,algo,q){
+    const n=ps.length,rem=ps.map(p=>p.burst),first=Array(n).fill(null),fin=Array(n).fill(null);
+    const sl=[];let t=0,done=0,guard=0;
+    const order=ps.map((p,i)=>i).sort((a,b)=>ps[a].arr-ps[b].arr||a-b);
+    if(algo==='fcfs'||algo==='rr'){
+      const Q=algo==='fcfs'?Infinity:Math.max(1,q);const queue=[],arrived=new Set();let cur=null,used=0;
+      const addArr=time=>order.forEach(i=>{if(!arrived.has(i)&&ps[i].arr<=time){arrived.add(i);queue.push(i);}});
+      addArr(0);
+      while(done<n&&guard++<100000){
+        if(cur===null){if(!queue.length){sl.push({id:-1});t++;addArr(t);continue;}cur=queue.shift();used=0;}
+        if(first[cur]===null)first[cur]=t;
+        sl.push({id:cur});rem[cur]--;used++;t++;addArr(t);
+        if(rem[cur]===0){fin[cur]=t;done++;cur=null;}else if(used>=Q){queue.push(cur);cur=null;}
+      }
+    }else{
+      const pre=(algo==='srtf'||algo==='prip');let cur=null;
+      const key=i=>algo==='sjf'?ps[i].burst:algo==='srtf'?rem[i]:ps[i].pri;
+      while(done<n&&guard++<100000){
+        const av=[];for(let i=0;i<n;i++)if(ps[i].arr<=t&&rem[i]>0)av.push(i);
+        if(!av.length){sl.push({id:-1});t++;cur=null;continue;}
+        if(!(cur!==null&&rem[cur]>0&&!pre)){
+          av.sort((a,b)=>key(a)-key(b)||((a===cur?0:1)-(b===cur?0:1))||ps[a].arr-ps[b].arr||a-b);cur=av[0];
+        }
+        if(first[cur]===null)first[cur]=t;
+        sl.push({id:cur});rem[cur]--;t++;
+        if(rem[cur]===0){fin[cur]=t;done++;cur=null;}
+      }
+    }
+    const segs=[];sl.forEach((s,k)=>{const l=segs[segs.length-1];if(l&&l.id===s.id)l.len++;else segs.push({id:s.id,s:k,len:1});});
+    const res=ps.map((p,i)=>{const ret=fin[i]-p.arr;return{i,first:first[i],fin:fin[i],ret,wait:ret-p.burst,resp:first[i]-p.arr};});
+    const avg=k=>res.reduce((a,r)=>a+r[k],0)/n;
+    const busy=sl.filter(s=>s.id>=0).length;
+    return{segs,res,total:sl.length,avgWait:avg('wait'),avgRet:avg('ret'),avgResp:avg('resp'),cs:Math.max(0,segs.filter(s=>s.id>=0).length-1),util:busy/sl.length*100};
+  }
+  function run(){
+    const algo=$('#sAlgo').value,q=+$('#sQ').value||1;const r=simulate(ps,algo,q);
+    const title=NAMES[algo]+(algo==='rr'?' (quantum = '+q+')':'');
+    const step=r.total>24?Math.ceil(r.total/24):1;
+    let axis='';for(let t=0;t<=r.total;t+=step)axis+='<span style="left:'+(t/r.total*100)+'%">'+t+'</span>';
+    $('#sOut').innerHTML='<p class="lab">Diagrama de Gantt · '+esc(title)+'</p>'
+      +'<div class="gantt">'+r.segs.map((s,k)=>s.id<0?'<div class="gs idle" style="width:'+(s.len/r.total*100)+'%;animation-delay:'+(k*90)+'ms">ocioso</div>':'<div class="gs" style="width:'+(s.len/r.total*100)+'%;background:'+COL[s.id%COL.length]+';animation-delay:'+(k*90)+'ms">'+ps[s.id].name+'</div>').join('')+'</div>'
+      +'<div class="axis">'+axis+'</div>'
+      +'<div class="kpi"><div><b>'+fmt(r.avgWait)+'</b><small>espera promedio</small></div><div><b>'+fmt(r.avgRet)+'</b><small>retorno promedio</small></div><div><b>'+fmt(r.avgResp)+'</b><small>respuesta promedio</small></div><div><b>'+r.cs+'</b><small>cambios de contexto</small></div><div><b>'+fmt(r.util)+' %</b><small>uso de CPU</small></div></div>'
+      +'<div class="scroll"><table class="tbl"><thead><tr><th>Proceso</th><th>Llegada</th><th>Ráfaga</th><th>1.ª ejecución</th><th>Fin</th><th>Espera</th><th>Retorno</th><th>Respuesta</th></tr></thead><tbody>'
+      +r.res.map(x=>'<tr><td><span class="dot" style="background:'+COL[x.i%COL.length]+'"></span><b>'+ps[x.i].name+'</b></td><td class="num">'+ps[x.i].arr+'</td><td class="num">'+ps[x.i].burst+'</td><td class="num">'+x.first+'</td><td class="num">'+x.fin+'</td><td class="num">'+x.wait+'</td><td class="num">'+x.ret+'</td><td class="num">'+x.resp+'</td></tr>').join('')+'</tbody></table></div>'
+      +'<div class="tip"><b>Cómo leerlo:</b> espera = retorno − ráfaga, retorno = fin − llegada, respuesta = primera ejecución − llegada. Los tiempos están en unidades de tiempo (u).</div>';
+  }
+  function compare(){
+    const q=+$('#sQ').value||1;const rows=Object.keys(NAMES).map(a=>({a,r:simulate(ps,a,q)}));
+    const min=k=>Math.min(...rows.map(x=>x.r[k]));
+    const cell=(x,k)=>{const best=Math.abs(x.r[k]-min(k))<1e-9;return '<td class="num'+(best?' best':'')+'">'+fmt(x.r[k])+(best?' ★ mejor':'')+'</td>';};
+    $('#sOut').innerHTML='<p class="lab">Comparación de todos los algoritmos con estos procesos'+' (RR con quantum = '+q+')</p>'
+      +'<div class="scroll"><table class="tbl"><thead><tr><th>Algoritmo</th><th>Espera prom.</th><th>Retorno prom.</th><th>Respuesta prom.</th><th>Cambios de contexto</th></tr></thead><tbody>'
+      +rows.map(x=>'<tr><td><b>'+NAMES[x.a]+'</b></td>'+cell(x,'avgWait')+cell(x,'avgRet')+cell(x,'avgResp')+'<td class="num">'+x.r.cs+'</td></tr>').join('')+'</tbody></table></div>'
+      +'<div class="tip"><b>Moraleja:</b> no existe un algoritmo mejor para todo. SJF/SRTF minimizan la espera, Round Robin suele ganar en respuesta y las prioridades favorecen lo urgente. Cambia los procesos y vuelve a comparar.</div>';
+  }
+  const syncQ=()=>{$('#qWrap').style.display=$('#sAlgo').value==='rr'?'flex':'none';};
+  $('#sAlgo').onchange=syncQ;$('#sPreset').onchange=()=>{load($('#sPreset').value);run();};
+  $('#sAdd').onclick=()=>{if(ps.length>=7)return;ps.push({name:'P'+(ps.length+1),arr:0,burst:3,pri:2});drawTable();};
+  $('#sRun').onclick=run;$('#sCmp').onclick=compare;
+  syncQ();load('clase');run();
+})();
+
+/* ================= 07 hilos ================= */
+(function(){
+  function reset(){$('#tA').classList.remove('dead');$('#tB').classList.remove('dead');$$('#tA .th,#tB .th').forEach(t=>t.classList.remove('dead'));$('#tAres').innerHTML='';$('#tBres').innerHTML='';}
+  $('#tAfail').onclick=()=>{reset();$('#tA').classList.add('dead');$$('#tA .th').forEach(t=>t.classList.add('dead'));$('#tAres').innerHTML='<span class="st st-terminado">terminado</span> Todos los hilos comparten la memoria: el SO termina <b>todo el proceso</b>.';};
+  $('#tBfail').onclick=()=>{reset();$('#tB2').classList.add('dead');$('#tBres').innerHTML='<span class="st st-terminado">terminado</span> solo el proceso 2. <span class="st st-ejecutando">sigue</span> Los procesos 1 y 3 continúan, aislados.';};
+  $('#tReset').onclick=reset;
+})();
+
+/* ================= 08 IPC ================= */
+(function(){
+  const log=Log('#iLog');
+  $$('#ipcTabs .tab').forEach(t=>t.onclick=()=>{
+    $$('#ipcTabs .tab').forEach(x=>x.classList.toggle('on',x===t));
+    ['msg','shm','pipe'].forEach(k=>$('#t-'+k).style.display=k===t.dataset.t?'block':'none');
+  });
+  let busy=false,inbox=[];
+  $('#mSend').onclick=async()=>{
+    if(busy)return;busy=true;const txt=$('#mText').value.trim()||'(vacío)';
+    log.add('P1 llama a <b>send("'+esc(txt)+'")</b>.','in');
+    $('#mP1').classList.add('on');await sleep(450);$('#mP1').classList.remove('on');
+    $('#mK').classList.add('on');log.add('El kernel copia el mensaje a la cola de P2.','wa');await sleep(550);$('#mK').classList.remove('on');
+    $('#mP2').classList.add('on');log.add('P2 llama a <b>receive()</b> y recibe el mensaje.','ok');
+    inbox.push(txt);$('#inbox').innerHTML=inbox.map(m=>'✉ '+esc(m)).join('<br>');await sleep(450);$('#mP2').classList.remove('on');busy=false;
+  };
+  let sh=0;
+  $('#shW').onclick=()=>{sh=parseInt($('#shIn').value,10)||0;$('#shV').textContent=sh;log.add('P1 escribe <b>'+sh+'</b> en la región compartida.','in');};
+  $('#shR').onclick=()=>log.add('P2 lee <b>'+sh+'</b> de la región compartida (sin pasar por el kernel).','ok');
+  $('#pRun').onclick=async()=>{
+    const files=['notas.txt','foto.png','informe.txt','main.c','datos.csv','tarea.txt'];
+    $('#pOut1').innerHTML='';$('#pOut2').innerHTML='';log.add('El shell crea dos procesos (ls y grep) conectados por una tubería.','in');
+    for(const f of files){
+      $('#pOut1').innerHTML+=f+'<br>';await sleep(280);
+      if(f.includes('txt')){$('#pOut2').innerHTML+=f+'<br>';log.add('grep deja pasar <b>'+f+'</b>.','ok');}
+    }
+    log.add('ls terminó: cierra la tubería y grep recibe fin de archivo.','wa');
+  };
+  log.add('Elige un mecanismo en las pestañas y pruébalo.');
+})();
+
+/* ================= 09a carrera ================= */
+(function(){
+  const STEPS=[
+    ['T1','LOAD r1 ← contador',s=>{s.r1=s.c;}],
+    ['T2','LOAD r2 ← contador',s=>{s.r2=s.c;}],
+    ['T1','ADD r1 ← r1 + 1',s=>{s.r1++;}],
+    ['T2','ADD r2 ← r2 + 1',s=>{s.r2++;}],
+    ['T1','STORE contador ← r1',s=>{s.c=s.r1;}],
+    ['T2','STORE contador ← r2',s=>{s.c=s.r2;}]
+  ];
+  let i,s,rows;
+  function reset(){i=0;s={c:0,r1:0,r2:0};rows=[];draw();}
+  function draw(){
+    $('#rBody').innerHTML=rows.length?rows.map((r,k)=>'<tr><td class="num">'+(k+1)+'</td><td><b>'+r[0]+'</b></td><td class="num">'+r[1]+'</td><td class="num">'+r[2]+'</td></tr>').join(''):'<tr><td colspan="4" style="color:var(--mu)">Pulsa «Siguiente paso» para intercalar T1 y T2. Valor inicial: contador = 0.</td></tr>';
+    $('#rNext').disabled=i>=STEPS.length;
+    $('#rBan').innerHTML=i>=STEPS.length?'<div class="banner er">Resultado: contador = '+s.c+'. Se esperaba 2: <b>se perdió una actualización</b>.</div>':'';
+  }
+  $('#rNext').onclick=()=>{const st=STEPS[i];st[2](s);rows.push([st[0],st[1],s.c]);i++;draw();};
+  $('#rReset').onclick=reset;
+  const n=$('#rN');n.oninput=()=>$('#nv').textContent=n.value;
+  function sim(N,mutex){
+    const th=[{pc:0,left:N,r:0},{pc:0,left:N,r:0}];let c=0,owner=-1;
+    while(th[0].left>0||th[1].left>0){
+      let cand=[0,1].filter(k=>th[k].left>0);
+      if(mutex&&owner>=0)cand=cand.filter(k=>k===owner);
+      const k=cand[Math.floor(Math.random()*cand.length)],t=th[k];
+      if(t.pc===0){if(mutex)owner=k;t.r=c;t.pc=1;}
+      else if(t.pc===1){t.r++;t.pc=2;}
+      else{c=t.r;t.pc=0;t.left--;if(mutex)owner=-1;}
+    }
+    return c;
+  }
+  function show(mutex){
+    const N=+n.value,exp=2*N,c=sim(N,mutex);
+    $('#rRes').innerHTML=(mutex?'<b>Con mutex</b>':'<b>Sin mutex</b>')+' — esperado: <b>'+exp+'</b> · obtenido: <b style="color:'+(c===exp?'var(--green)':'var(--red)')+'">'+c+'</b>'
+      +(c===exp?'<div class="banner ok">Correcto: la sección crítica protegió el contador.</div>':'<div class="banner er">Se perdieron '+(exp-c)+' incrementos por la condición de carrera. Vuelve a ejecutar: cambia cada vez.</div>');
+  }
+  $('#rUn').onclick=()=>show(false);$('#rMu').onclick=()=>show(true);
+  reset();
+})();
+
+/* ================= 09b interbloqueo ================= */
+(function(){
+  const bad=[
+    ['P1 hace lock(A)',s=>{s.A='P1';return 'P1 obtiene A ✓';}],
+    ['P2 hace lock(B)',s=>{s.B='P2';return 'P2 obtiene B ✓';}],
+    ['P1 pide lock(B)',s=>{return 'B la tiene P2 → P1 se bloquea ⏳';}],
+    ['P2 pide lock(A)',s=>{s.dead=true;return 'A la tiene P1 → P2 se bloquea ⏳';}]
+  ];
+  const good=[
+    ['P1 hace lock(A)',s=>{s.A='P1';return 'P1 obtiene A ✓';}],
+    ['P2 pide lock(A) (orden: A primero)',s=>{return 'A la tiene P1 → P2 espera, pero no retiene nada ⏳';}],
+    ['P1 hace lock(B)',s=>{s.B='P1';return 'P1 obtiene B ✓ y trabaja';}],
+    ['P1 libera A y B',s=>{s.A=null;s.B=null;return 'P1 termina ✓';}],
+    ['P2 obtiene A y luego B',s=>{s.A='P2';s.B='P2';return 'P2 obtiene ambos ✓ y termina';}]
+  ];
+  let i,s,rows,seq;
+  function reset(){seq=$('#dOrder').checked?good:bad;i=0;s={A:null,B:null,dead:false};rows=[];draw();}
+  function draw(){
+    $('#dBody').innerHTML=rows.length?rows.map((r,k)=>'<tr><td class="num">'+(k+1)+'</td><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>').join(''):'<tr><td colspan="3" style="color:var(--mu)">Pulsa «Siguiente paso».</td></tr>';
+    $('#dAo').textContent=s.A?'tiene '+s.A:'libre';$('#dBo').textContent=s.B?'tiene '+s.B:'libre';
+    $('#dA').classList.toggle('on',!!s.A);$('#dB').classList.toggle('on',!!s.B);
+    $('#dNext').disabled=i>=seq.length;
+    $('#dBan').innerHTML=s.dead?'<div class="banner er">INTERBLOQUEO: P1 espera a P2 y P2 espera a P1. Ninguno avanzará jamás.</div>':(i>=seq.length?'<div class="banner ok">Sin interbloqueo: al pedir siempre en el mismo orden se rompe la espera circular.</div>':'');
+  }
+  $('#dNext').onclick=()=>{const st=seq[i];const r=st[1](s);rows.push([st[0],r]);i++;draw();};
+  $('#dReset').onclick=reset;$('#dOrder').onchange=reset;reset();
+})();
+
+/* ================= práctica: copiar ================= */
+$$('.cmd button').forEach(b=>b.onclick=async()=>{
+  const t=b.previousElementSibling.textContent.replace(/^\$\s*/,'');
+  try{await navigator.clipboard.writeText(t);b.textContent='¡Copiado!';}catch(e){b.textContent='Selecciona y copia';}
+  setTimeout(()=>b.textContent='Copiar',1400);
+});
+
+/* ================= quiz ================= */
+(function(){
+  const Q=[
+    ['¿Qué diferencia a un proceso de un programa?',['El proceso es un archivo en disco y el programa está en RAM','El proceso es un programa en ejecución; el programa es solo un archivo pasivo','No hay diferencia','El programa usa CPU y el proceso no'],1,'El programa es pasivo (archivo). El proceso es su instancia en ejecución, con memoria, estado y PCB.'],
+    ['¿En qué estado queda un proceso que espera que termine una lectura de disco?',['Listo','Ejecutando','Bloqueado','Nuevo'],2,'No puede avanzar hasta que llegue la E/S: está bloqueado. Al terminar pasa a Listo, no directo a Ejecutando.'],
+    ['¿Qué guarda el SO en el PCB durante un cambio de contexto?',['Solo el nombre del proceso','El PC, los registros de la CPU y el estado','El contenido completo del disco','Nada: se descarta'],1,'Así el proceso puede reanudarse exactamente donde estaba.'],
+    ['Después de un fork(), ¿qué valor recibe el proceso hijo?',['El PID del padre','-1','0','El PID del hijo'],2,'En el hijo fork() devuelve 0; en el padre devuelve el PID del hijo; -1 indica error.'],
+    ['¿Qué algoritmo minimiza el tiempo de espera promedio?',['FCFS','SJF (trabajo más corto primero)','Round Robin','Prioridades'],1,'SJF es óptimo en espera promedio, pero exige conocer la ráfaga. Compruébalo en el simulador.'],
+    ['En Round Robin, si el quantum es demasiado pequeño…',['Mejora el rendimiento siempre','Hay demasiados cambios de contexto y se pierde tiempo','Se vuelve igual a SJF','Los procesos nunca terminan'],1,'El overhead de cambiar de contexto domina. Si el quantum es enorme, se parece a FCFS.'],
+    ['¿Qué comparten los hilos de un mismo proceso?',['La pila y los registros','Código, datos y archivos abiertos','Nada','El contador de programa'],1,'Cada hilo tiene su propia pila, registros y PC; el resto es compartido con su proceso.'],
+    ['¿Qué es una condición de carrera?',['Cuando un proceso corre muy rápido','Cuando el resultado depende del orden en que se intercalan los accesos a datos compartidos','Un tipo de planificador','Un error de compilación'],1,'Se evita con exclusión mutua (mutex, semáforos) en la sección crítica.']
+  ];
+  let score,answered;
+  function build(){
+    score=0;answered=0;
+    $('#quiz').innerHTML=Q.map((q,i)=>'<div class="q"><h4>'+(i+1)+'. '+q[0]+'</h4>'+q[1].map((o,k)=>'<button class="opt" data-q="'+i+'" data-k="'+k+'">'+o+'</button>').join('')+'<div class="exp" id="ex'+i+'"></div></div>').join('');
+    $$('#quiz .opt').forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.q,k=+b.dataset.k,ok=k===Q[i][2];
+      $$('#quiz .opt[data-q="'+i+'"]').forEach(x=>{x.disabled=true;if(+x.dataset.k===Q[i][2])x.classList.add('ok');});
+      if(!ok)b.classList.add('no'); else score++;
+      answered++;const ex=$('#ex'+i);ex.innerHTML=(ok?'<b style="color:var(--green)">¡Correcto!</b> ':'<b style="color:var(--red)">No exactamente.</b> ')+Q[i][3];ex.classList.add('on');
+      $('#qScore').textContent='Puntaje: '+score+' / '+Q.length+(answered===Q.length?(score===Q.length?' · ¡Perfecto!':' · Respondiste todas'):'');
+    });
+    $('#qScore').textContent='Puntaje: 0 / '+Q.length;
+  }
+  $('#qReset').onclick=build;build();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Procesos en 3 minutos | Kernel Lab</title>
+<style>
+:root{
+  --bg:#0a1020; --surf:#121c33; --surf2:#17233f; --bd:#243558; --bd2:#2f4572;
+  --tx:#e6edf7; --mu:#93a4c0; --blue:#4f9dff; --orange:#ff9f43; --yellow:#f5c542; --teal:#2dd4bf;
+  --red:#ff6b6b; --green:#4ade80; --purple:#c084fc;
+  --sans:'Segoe UI Variable','Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+  --mono:'Cascadia Mono','Cascadia Code',Consolas,'Courier New',monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:66px;scroll-snap-type:y proximity}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);line-height:1.5;font-size:17px;
+  background-image:radial-gradient(900px 500px at 85% -5%,rgba(79,157,255,.13),transparent 60%),radial-gradient(700px 500px at -5% 25%,rgba(45,212,191,.08),transparent 60%);background-attachment:fixed}
+p{margin:0 0 10px} h1,h2,h3{margin:0;line-height:1.12} code{font-family:var(--mono);background:rgba(79,157,255,.12);padding:1px 6px;border-radius:6px;font-size:.92em}
+
+/* barra superior */
+.top{position:sticky;top:0;z-index:50;background:rgba(10,16,32,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:14px;padding:0 20px;height:62px}
+.brand{font-weight:800;white-space:nowrap}.brand b{color:var(--teal)}.brand span{color:var(--mu);font-weight:500}
+.steps{display:flex;gap:6px;flex:1;overflow-x:auto;scrollbar-width:none}
+.steps::-webkit-scrollbar{display:none}
+.steps a{color:var(--mu);text-decoration:none;font-size:13px;font-weight:700;padding:7px 11px;border-radius:10px;white-space:nowrap;border:1px solid var(--bd)}
+.steps a small{opacity:.7;font-weight:600;margin-left:6px}
+.steps a.on{background:var(--teal);color:#06231f;border-color:var(--teal)}
+.timer{display:flex;align-items:center;gap:8px}
+.clock{font:800 22px var(--mono);min-width:72px;text-align:center;padding:4px 12px;border-radius:10px;background:#0b1326;border:1px solid var(--bd2)}
+.clock.warn{color:var(--yellow);border-color:var(--yellow)} .clock.end{color:var(--red);border-color:var(--red);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.45}}
+.btn{font:700 14.5px var(--sans);color:var(--tx);background:var(--surf2);border:1px solid var(--bd2);border-radius:11px;padding:9px 15px;cursor:pointer;transition:transform .12s,background .15s,border-color .15s;text-decoration:none;display:inline-block}
+.btn:hover:not(:disabled){background:#1e2d50;border-color:var(--blue);transform:translateY(-1px)}
+.btn.pri{background:var(--teal);color:#06231f;border-color:var(--teal)} .btn.pri:hover:not(:disabled){background:#5eead4}
+.btn.warn{background:rgba(255,159,67,.14);border-color:var(--orange);color:#ffd2a1}
+.btn.sm{padding:6px 12px;font-size:13.5px;border-radius:9px}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.prog{position:fixed;left:0;top:62px;height:3px;background:linear-gradient(90deg,var(--teal),var(--blue),var(--orange));width:0;z-index:60}
+
+/* secciones */
+main{max-width:1120px;margin:0 auto;padding:0 20px}
+.sl{min-height:calc(100vh - 62px);display:flex;flex-direction:column;justify-content:center;padding:34px 0;scroll-snap-align:start}
+.kicker{font:700 12.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.budget{color:var(--yellow);border:1px solid rgba(245,197,66,.5);border-radius:999px;padding:4px 10px;letter-spacing:.06em}
+.sl h2{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.8px;margin-bottom:18px}
+.sl h2 em{font-style:normal;color:var(--yellow)}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:linear-gradient(180deg,var(--surf),#101a31);border:1px solid var(--bd);border-radius:18px;padding:18px 22px}
+.card h3{font-size:20px;margin-bottom:6px}
+.card p{color:var(--mu);font-size:15.5px;margin:0}
+.card .sub{font:700 11.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--blue);margin-bottom:9px;display:block}
+.card.accent{border-color:var(--yellow);background:linear-gradient(180deg,#1f2234,#141a2d)}.card.accent h3{color:var(--yellow)}
+.tip{border-left:4px solid var(--yellow);background:rgba(245,197,66,.08);border-radius:0 12px 12px 0;padding:12px 16px;margin-top:14px;color:#f3e3a6;font-size:15.5px}
+.tip b{color:var(--yellow)}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.chip{font:700 13.5px var(--sans);padding:7px 14px;border-radius:999px;background:rgba(79,157,255,.13);border:1px solid rgba(79,157,255,.4);color:#cfe3ff}
+.st{display:inline-block;font:700 11.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:5px 9px;border-radius:999px;border:1px solid}
+.st-nuevo{color:#c3cfe3;border-color:#5b6d8c;background:rgba(147,164,192,.12)}
+.st-listo{color:var(--blue);border-color:var(--blue);background:rgba(79,157,255,.12)}
+.st-ejecutando{color:var(--green);border-color:var(--green);background:rgba(74,222,128,.12)}
+.st-bloqueado{color:var(--orange);border-color:var(--orange);background:rgba(255,159,67,.12)}
+.st-terminado{color:var(--red);border-color:var(--red);background:rgba(255,107,107,.12)}
+
+/* hero */
+.hero h1{font-size:clamp(40px,7vw,80px);font-weight:800;letter-spacing:-2px;margin:10px 0 16px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--teal),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lead{font-size:20px;color:var(--mu);max-width:640px}
+.agenda{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:26px 0}
+.agenda div{background:var(--surf);border:1px solid var(--bd);border-radius:14px;padding:14px 16px}
+.agenda b{display:block;font:800 22px var(--mono);color:var(--yellow)}
+.agenda span{font-size:14.5px;color:var(--mu)}
+.by{font:500 14px var(--mono);color:var(--mu);margin-top:18px}
+
+/* concepto */
+.plist{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;min-height:44px}
+.pi{background:#0b1326;border:1px solid var(--bd);border-radius:12px;padding:8px 14px;font:13.5px var(--mono);animation:fadein .35s}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ciclo */
+.lc{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:start}
+@media(max-width:900px){.lc{grid-template-columns:1fr}}
+.svgbox{background:#0a1224;border:1px solid var(--bd);border-radius:16px;padding:8px}
+.svgbox svg{width:100%;height:auto;display:block}
+.nd rect{fill:#121c33;stroke:#3a4f7c;stroke-width:2.5;transition:all .25s}
+.nd text{fill:#d3def0;font:700 25px var(--sans);text-anchor:middle}.nd text.s{font:500 17px var(--sans);fill:#9fb1cf}
+.nd.on rect{fill:#1f5fd1;stroke:#9cc4ff;stroke-width:3.5;filter:drop-shadow(0 0 14px rgba(79,157,255,.7))}
+.nd.on text{fill:#fff}.nd.on text.s{fill:#d7e6ff}
+.ed{fill:none;stroke:#4a5f8a;stroke-width:2.5;transition:stroke .25s}.ed.hot{stroke:var(--yellow);stroke-width:4}
+.el{fill:#b4c4e0;font:600 18px var(--sans)}
+.cap{background:#0b1326;border:1px solid var(--bd);border-radius:14px;padding:16px 18px;min-height:150px;font-size:19px;line-height:1.5}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin:-4px 0 16px}
+.legend .chip{background:rgba(245,197,66,.1);border-color:rgba(245,197,66,.45);color:#f6e6ad}
+.cap b{color:var(--yellow)}
+.trs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+/* planificación */
+.algo h3{font-size:22px}
+.metr{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:14px}
+.metr div{background:#0b1326;border:1px solid var(--bd);border-radius:14px;padding:12px 16px;font-size:15.5px}
+.metr b{display:block;font:800 13px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:4px}
+.metr code{background:none;color:var(--yellow);padding:0}
+
+/* ejemplo */
+.procs{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.pp{font:700 14px var(--mono);padding:6px 12px;border-radius:10px;color:#071018}
+.race{display:grid;gap:12px}
+.rw{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:start}
+.rl{font:800 15px var(--sans);padding-top:11px}
+.cells{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+.ce{height:44px;border-radius:8px;background:#0b1326;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:800 14px var(--sans);color:#071018;transition:background .25s,transform .25s}
+.ce.now{outline:3px solid var(--yellow);transform:translateY(-3px)}
+.tick{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;font:12px var(--mono);color:var(--mu);margin-top:3px}
+.tick span{text-align:left;padding-left:2px}
+.info{font:13px/1.5 var(--mono);color:#b9c7de;min-height:40px;margin-top:6px}
+.info b{color:var(--teal)}
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0 14px}
+.tclock{font:800 18px var(--mono);color:var(--yellow);margin-left:6px}
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th{font:700 11.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mu);text-align:left;padding:8px 10px;border-bottom:1px solid var(--bd2)}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--bd)}
+.tbl tr:last-child td{border-bottom:none}
+.num{font-family:var(--mono)} .best{color:var(--green);font-weight:800}
+.res{display:none;margin-top:12px}.res.on{display:grid;grid-template-columns:1.5fr 1fr;gap:14px}
+@media(max-width:900px){.res.on{grid-template-columns:1fr}}
+.calc{font-size:15px;color:var(--mu)} .calc b{color:var(--tx)} .calc .f{font:14px var(--mono);color:var(--yellow);display:block;margin:4px 0}
+
+/* cierre */
+.big{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:16px}
+.big .card .n{font:800 40px var(--mono);color:var(--yellow);line-height:1;margin-bottom:6px}
+.big .card p{font-size:17px;color:var(--tx)}
+
+/* guion */
+.guion{position:fixed;left:0;right:0;bottom:0;z-index:70;background:rgba(8,13,26,.97);border-top:3px solid var(--orange);padding:14px 26px 18px;display:none;max-height:36vh;overflow:auto}
+.guion.on{display:block}
+.guion h4{margin:0 0 6px;font:700 12px var(--mono);letter-spacing:.14em;color:var(--orange);text-transform:uppercase}
+.guion p{font-size:19px;line-height:1.6;margin:0;max-width:1000px}
+.hint{position:fixed;left:16px;bottom:14px;font:500 13px var(--sans);color:#6f82a3;z-index:5}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><b>⚙ Kernel Lab</b> <span>· Procesos en 3 min</span></div>
+  <nav class="steps" id="nav">
+    <a href="#hero">Inicio</a><a href="#concepto">1 · Concepto <small>0:00</small></a><a href="#ciclo">2 · Ciclo de vida <small>0:35</small></a><a href="#plan">3 · Planificación <small>1:15</small></a><a href="#ejemplo">4 · Ejemplo <small>1:45</small></a><a href="#cierre">5 · Cierre <small>2:40</small></a>
+  </nav>
+  <div class="timer"><span class="clock" id="clock">3:00</span><button class="btn sm pri" id="tGo">▶ Iniciar</button><button class="btn sm" id="tReset" title="Reiniciar cronómetro">↺</button><button class="btn sm warn" id="gBtn" title="Guion (tecla G)">Guion</button></div>
+</header>
+<div class="prog" id="prog"></div>
+
+<main>
+
+<!-- ============ INICIO ============ -->
+<section id="hero" class="sl hero">
+  <div class="kicker">Sistemas Operativos · Defensa</div>
+  <h1>Los <em>procesos</em><br>en 3 minutos</h1>
+  <p class="lead">Qué son, cómo viven y cómo se reparten la CPU, con un ejemplo resuelto paso a paso.</p>
+  <div class="agenda">
+    <div><b>0:35</b><span>1 · Qué es un proceso</span></div>
+    <div><b>0:40</b><span>2 · Estados, PCB y cambio de contexto</span></div>
+    <div><b>0:30</b><span>3 · Planificación de la CPU</span></div>
+    <div><b>0:55</b><span>4 · Ejemplo resuelto</span></div>
+    <div><b>0:20</b><span>5 · Conclusión</span></div>
+  </div>
+  <div><button class="btn pri" id="startAll">▶ Iniciar cronómetro y comenzar</button> <span style="color:var(--mu);font-size:14px;margin-left:8px">Flechas ↑ ↓ o espacio para avanzar · G muestra el guion</span></div>
+  <div class="by">[Nombre del presentador] · [Curso / Docente] · [Fecha]</div>
+</section>
+
+<!-- ============ 1 CONCEPTO ============ -->
+<section id="concepto" class="sl">
+  <div class="kicker">01 · Concepto <span class="budget">⏱ 0:35</span></div>
+  <h2>Un proceso es un <em>programa en ejecución</em></h2>
+  <div class="g2">
+    <div class="card"><span class="sub">Programa</span><h3>Pasivo · vive en el disco</h3><p>Un archivo (<code>notepad.exe</code>). Es la <b>receta</b>: no consume CPU ni memoria mientras nadie la use.</p></div>
+    <div class="card accent"><span class="sub" style="color:var(--yellow)">Proceso</span><h3>Activo · vive en la RAM</h3><p>La receta <b>puesta en marcha</b>: usa CPU, memoria y archivos, y tiene un principio y un fin.</p></div>
+  </div>
+  <div class="chips"><span class="chip">PID: su identificador</span><span class="chip">Memoria propia: código · datos · heap · pila</span><span class="chip">Estado actual</span><span class="chip">PCB: su ficha en el SO</span></div>
+  <div class="row" style="margin-top:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <button class="btn pri" id="runP">▶ Ejecutar notepad.exe</button><button class="btn" id="clrP">↺</button>
+    <span style="color:var(--mu);font-size:14.5px">Un programa → varios procesos, cada uno con su PID y su memoria.</span>
+  </div>
+  <div class="plist" id="plist"></div>
+</section>
+
+<!-- ============ 2 CICLO DE VIDA ============ -->
+<section id="ciclo" class="sl">
+  <div class="kicker">02 · Ciclo de vida <span class="budget">⏱ 0:40</span></div>
+  <h2>La vida de un proceso: como un <em>cliente en un banco</em></h2>
+  <div class="legend"><span class="chip">Un banco con una sola ventanilla</span><span class="chip">Ventanilla = el procesador (CPU)</span><span class="chip">Cliente = un proceso</span><span class="chip">La fila = procesos «Listos»</span></div>
+  <div class="lc">
+    <div>
+      <div class="svgbox">
+<svg viewBox="0 0 960 380" role="img" aria-label="Diagrama de estados como un cliente en un banco: nuevo, listo, ejecutando, bloqueado y terminado">
+  <defs><marker id="ar" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L12 6L0 12z" fill="#6f86b3"/></marker>
+  <marker id="arh" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L12 6L0 12z" fill="#f5c542"/></marker></defs>
+  <path id="e-nl" class="ed" d="M150 172H216" marker-end="url(#ar)"/>
+  <path id="e-le" class="ed" d="M370 152H556" marker-end="url(#ar)"/>
+  <path id="e-el" class="ed" d="M560 194H374" marker-end="url(#ar)"/>
+  <path id="e-et" class="ed" d="M740 172H806" marker-end="url(#ar)"/>
+  <path id="e-eb" class="ed" d="M650 214V332H571" marker-end="url(#ar)"/>
+  <path id="e-bl" class="ed" d="M379 332H295V216" marker-end="url(#ar)"/>
+  <text class="el" x="184" y="158" text-anchor="middle">llega</text>
+  <text class="el" x="464" y="140" text-anchor="middle">le toca su turno</text>
+  <text class="el" x="464" y="224" text-anchor="middle">se le acaba el tiempo</text>
+  <text class="el" x="774" y="158" text-anchor="middle">acaba</text>
+  <text class="el" x="666" y="282">pide algo lento</text>
+  <text class="el" x="280" y="282" text-anchor="end">llegó lo que esperaba</text>
+  <g class="nd" id="n-nuevo"><rect x="0" y="130" width="150" height="84" rx="16"/><text x="75" y="166">Nuevo</text><text class="s" x="75" y="192">acaba de llegar</text></g>
+  <g class="nd" id="n-listo"><rect x="220" y="130" width="150" height="84" rx="16"/><text x="295" y="166">Listo</text><text class="s" x="295" y="192">esperando turno</text></g>
+  <g class="nd" id="n-ejecutando"><rect x="560" y="130" width="180" height="84" rx="16"/><text x="650" y="166">Ejecutando</text><text class="s" x="650" y="192">lo atienden (CPU)</text></g>
+  <g class="nd" id="n-terminado"><rect x="810" y="130" width="150" height="84" rx="16"/><text x="885" y="166">Terminado</text><text class="s" x="885" y="192">ya acabó</text></g>
+  <g class="nd" id="n-bloqueado"><rect x="381" y="290" width="188" height="84" rx="16"/><text x="475" y="326">Bloqueado</text><text class="s" x="475" y="352">espera algo lento</text></g>
+</svg>
+      </div>
+      <div class="trs"><button class="btn pri" id="lcAuto">▶ Ver una vida completa</button><span id="lcBtns" style="display:contents"></span><button class="btn sm" id="lcReset">↺</button></div>
+    </div>
+    <div>
+      <div class="cap" id="lcCap"></div>
+      <div class="card" style="margin-top:12px;padding:14px 18px"><span class="sub">PCB = la ficha del cliente</span><p>Una hoja donde el sistema anota <b style="color:var(--tx)">quién es</b> (su número), <b style="color:var(--tx)">en qué paso va</b> y <b style="color:var(--tx)">qué está usando</b>.</p></div>
+      <div class="card" style="margin-top:12px;padding:14px 18px"><span class="sub">Cambio de contexto</span><p>El cajero <b style="color:var(--tx)">anota en qué iba</b> y lee la ficha del siguiente cliente. Mientras anota, nadie avanza: es tiempo perdido.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 PLANIFICACIÓN ============ -->
+<section id="plan" class="sl">
+  <div class="kicker">03 · Planificación de la CPU <span class="budget">⏱ 0:30</span></div>
+  <h2>Hay más procesos que CPUs: <em>el planificador decide</em></h2>
+  <div class="g3 algo">
+    <div class="card"><span class="sub">FCFS</span><h3>Primero en llegar</h3><p>Simple. Un proceso largo retrasa a los cortos (efecto convoy).</p></div>
+    <div class="card"><span class="sub">SJF</span><h3>El más corto primero</h3><p>La menor espera promedio, pero exige conocer la ráfaga.</p></div>
+    <div class="card accent"><span class="sub" style="color:var(--yellow)">Round Robin</span><h3>Turnos (quantum)</h3><p>Reparto justo y respuesta rápida. Muchos cambios de contexto si el quantum es chico.</p></div>
+  </div>
+  <div class="metr">
+    <div><b>Retorno</b>fin − llegada</div>
+    <div><b>Espera</b>retorno − ráfaga</div>
+    <div><b>Respuesta</b>primera ejecución − llegada</div>
+  </div>
+  <div class="tip"><b>Ráfaga</b> = tiempo de CPU que necesita un proceso. <b>Quantum</b> = turno máximo que se le da en Round Robin.</div>
+</section>
+
+<!-- ============ 4 EJEMPLO ============ -->
+<section id="ejemplo" class="sl">
+  <div class="kicker">04 · Ejemplo resuelto <span class="budget">⏱ 0:55</span></div>
+  <h2>Tres procesos, tres algoritmos, <em>la misma CPU</em></h2>
+  <div class="procs">
+    <span class="pp" style="background:#4f9dff">P1 · ráfaga 5</span><span class="pp" style="background:#ff9f43">P2 · ráfaga 3</span><span class="pp" style="background:#2dd4bf">P3 · ráfaga 2</span>
+    <span style="color:var(--mu);font-size:14.5px">Todos llegan en t = 0 · Round Robin con quantum = 2</span>
+  </div>
+  <div class="ctrl"><button class="btn pri" id="exPlay">▶ Reproducir</button><button class="btn" id="exStep">⏭ Paso</button><button class="btn" id="exReset">↺ Reiniciar</button><span class="tclock" id="exT">t = 0</span></div>
+  <div class="race" id="race"></div>
+  <div class="res" id="res">
+    <div class="card" style="padding:12px 16px"><div style="overflow-x:auto"><table class="tbl" id="resTbl"></table></div></div>
+    <div class="card calc" id="calc" style="padding:12px 18px"></div>
+  </div>
+</section>
+
+<!-- ============ 5 CIERRE ============ -->
+<section id="cierre" class="sl">
+  <div class="kicker">05 · Conclusión <span class="budget">⏱ 0:20</span></div>
+  <h2>Lo esencial, en <em>tres ideas</em></h2>
+  <div class="big">
+    <div class="card"><div class="n">1</div><p>Un <b>proceso</b> es un programa en ejecución, con su memoria, su estado y su PCB.</p></div>
+    <div class="card"><div class="n">2</div><p>Vive entre <b>cinco estados</b>; el cambio de contexto guarda y restaura su PCB.</p></div>
+    <div class="card"><div class="n">3</div><p>El <b>planificador</b> reparte la CPU: no existe un algoritmo mejor para todo.</p></div>
+  </div>
+  <div class="card" style="padding:16px 22px"><span class="sub">Bibliografía</span>
+    <p>Silberschatz, Galvin y Gagne. <i>Fundamentos de sistemas operativos.</i> · Tanenbaum y Bos. <i>Sistemas operativos modernos.</i> · Stallings. <i>Sistemas operativos.</i></p></div>
+  <h2 style="margin:26px 0 0;font-size:clamp(34px,5vw,56px)">¿Preguntas?</h2>
+  <p style="color:var(--mu);margin-top:8px">Material de apoyo con todo el detalle: <b style="color:var(--tx)">Procesos_Lab.html</b></p>
+</section>
+</main>
+
+<div class="guion" id="guion"><h4 id="gTit"></h4><p id="gTxt"></p></div>
+<div class="hint">G: guion · Espacio / ↓: siguiente</div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const fmt=n=>(Math.round(n*100)/100).toFixed(2).replace('.',',');
+const badge=s=>'<span class="st st-'+s+'">'+s+'</span>';
+
+/* ================= guion y navegación ================= */
+const GUION={
+  hero:['Inicio · 0:00','Buenos días. Voy a explicar los procesos en tres minutos: qué son, cómo viven, cómo se reparten la CPU y un ejemplo resuelto.'],
+  concepto:['1 · Qué es un proceso · 0:00 – 0:35','Un proceso es un programa en ejecución. El programa es solo un archivo en el disco, como una receta; el proceso es esa receta puesta en marcha: tiene su memoria, su PID y su estado. De un mismo programa pueden existir varios procesos: aquí, al ejecutar el Bloc de notas dos veces, aparecen dos PID distintos.'],
+  ciclo:['2 · Ciclo de vida · 0:35 – 1:15','Imaginen un banco con una sola ventanilla: la ventanilla es el procesador y cada cliente es un proceso. Cuando llega, está Nuevo. Hace fila: está Listo. Cuando le toca, lo atienden: está Ejecutando. Si necesita algo lento, como cargar un archivo, se hace a un lado: está Bloqueado, y cuando llega lo que esperaba, vuelve a la fila, no pasa directo. Al terminar, se va. La ficha donde se anota en qué iba cada cliente es el PCB, y cambiar de ficha para atender al siguiente se llama cambio de contexto.'],
+  plan:['3 · Planificación · 1:15 – 1:45','Como hay más procesos que CPUs, el planificador elige a quién le toca. FCFS atiende por orden de llegada; SJF, el más corto primero; Round Robin da turnos de un quantum. Los comparamos con tres métricas: retorno, espera y respuesta.'],
+  ejemplo:['4 · Ejemplo resuelto · 1:45 – 2:40','Veamos un ejemplo: tres procesos que llegan en cero, con ráfagas de 5, 3 y 2. Con FCFS la espera promedio es 4,33. SJF la baja a 2,33, pero necesita conocer la ráfaga. Round Robin con quantum 2 tiene más espera, 5, pero responde mucho más rápido: respuesta 2 contra 4,33. La conclusión: no hay un algoritmo mejor para todo.'],
+  cierre:['5 · Conclusión · 2:40 – 3:00','En resumen: un proceso es un programa en ejecución, vive entre estados guardados en su PCB, y el planificador reparte la CPU según un criterio. Gracias, ¿hay preguntas?']
+};
+const IDS=['hero','concepto','ciclo','plan','ejemplo','cierre'];
+let curSec='hero';
+(function(){
+  const links=$$('#nav a'),prog=$('#prog');
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>=.5){curSec=e.target.id;links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+curSec));setGuion();}});},{threshold:[.5]});
+  IDS.forEach(id=>io.observe($('#'+id)));
+  addEventListener('scroll',()=>{const h=document.documentElement;prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';},{passive:true});
+})();
+function setGuion(){const g=GUION[curSec];$('#gTit').textContent=g[0];$('#gTxt').textContent=g[1];}
+function go(d){const i=Math.max(0,Math.min(IDS.length-1,IDS.indexOf(curSec)+d));$('#'+IDS[i]).scrollIntoView({behavior:'smooth'});}
+$('#gBtn').onclick=()=>$('#guion').classList.toggle('on');
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(e.key==='g'||e.key==='G')$('#guion').classList.toggle('on');
+  else if(e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(1);}
+  else if(e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();go(-1);}
+});
+setGuion();
+
+/* ================= cronómetro 3:00 ================= */
+(function(){
+  let left=180,timer=null;const clk=$('#clock');
+  function draw(){const m=Math.floor(left/60),s=left%60;clk.textContent=m+':'+String(s).padStart(2,'0');clk.className='clock'+(left<=0?' end':left<=30?' warn':'');}
+  function stop(){clearInterval(timer);timer=null;$('#tGo').textContent='▶ Iniciar';}
+  function start(){if(timer)return;if(left<=0)left=180;timer=setInterval(()=>{left--;draw();if(left<=0)stop();},1000);$('#tGo').textContent='⏸ Pausar';}
+  $('#tGo').onclick=()=>timer?stop():start();
+  $('#tReset').onclick=()=>{stop();left=180;draw();};
+  $('#startAll').onclick=()=>{start();go(1);};
+  draw();
+})();
+
+/* ================= 1 concepto ================= */
+(function(){
+  let pid=4090;const list=$('#plist');
+  $('#runP').onclick=()=>{if(list.children.length>=5)return;pid+=Math.floor(Math.random()*40)+9;const d=document.createElement('div');d.className='pi';d.innerHTML='notepad.exe · <b>PID '+pid+'</b> · '+(Math.floor(Math.random()*8)+6)+' MB · '+badge('ejecutando');list.appendChild(d);};
+  $('#clrP').onclick=()=>{list.innerHTML='';};
+})();
+
+/* ================= 2 ciclo de vida ================= */
+(function(){
+  const TR=[
+    {f:'nuevo',t:'listo',l:'Llega y hace fila',e:'e-nl',m:'Llega un cliente nuevo, <b>le abren su ficha</b> y se une a la fila. Ya está listo para ser atendido. <i>(el sistema lo llama «admitir»)</i>'},
+    {f:'listo',t:'ejecutando',l:'Le toca su turno',e:'e-le',m:'Le llega el turno y <b>el cajero (la CPU) empieza a atenderlo</b>. Solo uno a la vez. <i>(se llama «despachar»)</i>'},
+    {f:'ejecutando',t:'listo',l:'Se le acaba el tiempo',e:'e-el',m:'Se le acabó su tiempo de atención y aún no termina: <b>vuelve al final de la fila</b>, y el cajero anota en qué iba. <i>(se llama «expulsar»)</i>'},
+    {f:'ejecutando',t:'bloqueado',l:'Pide algo lento',e:'e-eb',m:'Necesita algo lento, por ejemplo que cargue un archivo del disco. <b>Se hace a un lado</b> para no hacer esperar a los demás. <i>(queda «bloqueado»)</i>'},
+    {f:'bloqueado',t:'listo',l:'Llega lo que esperaba',e:'e-bl',m:'Ya llegó lo que esperaba, pero <b>no pasa directo a la ventanilla</b>: vuelve a hacer fila y espera su turno.'},
+    {f:'ejecutando',t:'terminado',l:'Termina su trámite',e:'e-et',m:'Terminó su trámite. <b>Se retira</b> y deja libre todo lo que usaba (memoria, archivos). <i>(se llama «terminar»)</i>'}
+  ];
+  const VIDA=[0,1,3,4,1,5]; let S,last,cap,auto=0;
+  const reset=()=>{S='nuevo';last=null;cap='Imagina un cliente que <b>acaba de llegar</b> al banco: está <b>Nuevo</b>. Pulsa «Ver una vida completa» y míralo avanzar, o muévelo tú con los botones.';};
+  function draw(){
+    ['nuevo','listo','ejecutando','bloqueado','terminado'].forEach(s=>$('#n-'+s).classList.toggle('on',s===S));
+    $$('.ed').forEach(e=>{const h=e.id===last;e.classList.toggle('hot',h);e.setAttribute('marker-end',h?'url(#arh)':'url(#ar)');});
+    $('#lcCap').innerHTML='<div style="margin-bottom:8px">Estado actual: '+badge(S)+'</div>'+cap;
+    const box=$('#lcBtns');box.innerHTML='';
+    TR.filter(t=>t.f===S).forEach(t=>{const b=document.createElement('button');b.className='btn sm';b.textContent=t.l;b.onclick=()=>{auto++;step(t);};box.appendChild(b);});
+  }
+  function step(t){S=t.t;last=t.e;cap=t.m;draw();}
+  $('#lcAuto').onclick=async()=>{
+    const my=++auto;reset();draw();await sleep(700);
+    for(const i of VIDA){if(my!==auto)return;step(TR[i]);await sleep(2600);}
+  };
+  $('#lcReset').onclick=()=>{auto++;reset();draw();};
+  reset();draw();
+})();
+
+/* ================= 4 ejemplo resuelto ================= */
+(function(){
+  const NAMES=['P1','P2','P3'],BURST=[5,3,2],COL=['#4f9dff','#ff9f43','#2dd4bf'];
+  const ALG=[{k:'fcfs',n:'FCFS',order:[0,1,2],q:Infinity},{k:'sjf',n:'SJF',order:[2,1,0],q:Infinity},{k:'rr',n:'Round Robin',order:[0,1,2],q:2}];
+  function build(order,q){
+    const rem=BURST.slice(),queue=order.slice(),out=[];let cur=null,used=0,t=0;
+    while(rem.some(r=>r>0)){
+      if(cur===null){cur=queue.shift();used=0;}
+      const note=[];if(used===0)note.push('<b>'+NAMES[cur]+'</b> recibe la CPU');
+      const run=cur,wait=queue.map(i=>NAMES[i]);
+      rem[cur]--;used++;
+      if(rem[cur]===0){note.push(NAMES[cur]+' termina en t = '+(t+1));cur=null;}
+      else if(used>=q){note.push('se agota el quantum de '+NAMES[run]+': vuelve al final de la cola');queue.push(cur);cur=null;}
+      out.push({run,wait,rem:rem.slice(),note:note.join(' · ')});t++;
+    }
+    return out;
+  }
+  const TR=ALG.map(a=>build(a.order,a.q));
+  function metrics(tr){
+    const first=[null,null,null],fin=[0,0,0];
+    tr.forEach((x,i)=>{if(first[x.run]===null)first[x.run]=i;fin[x.run]=i+1;});
+    const ret=fin.slice(),wait=fin.map((f,i)=>f-BURST[i]),resp=first.slice();
+    const avg=a=>a.reduce((s,v)=>s+v,0)/a.length;
+    return{first,fin,ret,wait,resp,aw:avg(wait),ar:avg(ret),as:avg(resp)};
+  }
+  const M=TR.map(metrics);
+  const race=$('#race');
+  race.innerHTML=ALG.map((a,r)=>'<div class="rw"><div class="rl">'+a.n+(a.k==='rr'?'<br><small style="color:var(--mu);font-weight:600">quantum 2</small>':'')+'</div><div><div class="cells" id="c'+r+'">'+Array.from({length:10},(_,i)=>'<div class="ce" data-i="'+i+'"></div>').join('')+'</div><div class="tick">'+Array.from({length:10},(_,i)=>'<span>'+i+'</span>').join('')+'</div><div class="info" id="i'+r+'"></div></div></div>').join('');
+  let k=0,playing=0;
+  function render(){
+    TR.forEach((tr,r)=>{
+      $$('#c'+r+' .ce').forEach((c,i)=>{
+        if(i<k){const x=tr[i];c.style.background=COL[x.run];c.textContent=NAMES[x.run];}
+        else{c.style.background='';c.textContent='';}
+        c.classList.toggle('now',i===k-1);
+      });
+      const inf=$('#i'+r);
+      if(k===0)inf.innerHTML='<span style="color:#5b6d8c">En espera…</span>';
+      else{const x=tr[k-1];inf.innerHTML='CPU: <b>'+NAMES[x.run]+'</b> · cola: '+(x.wait.length?x.wait.join(', '):'—')+'<br>'+x.note;}
+    });
+    $('#exT').textContent='t = '+k;
+    $('#exPlay').textContent=playing?'⏸ Pausar':'▶ Reproducir';
+    $('#exStep').disabled=k>=10;
+    const done=k>=10;$('#res').classList.toggle('on',done);
+    if(done)results();
+  }
+  function results(){
+    const best=key=>Math.min(...M.map(m=>m[key]));
+    const c=(m,key)=>{const b=Math.abs(m[key]-best(key))<1e-9;return '<td class="num'+(b?' best':'')+'">'+fmt(m[key])+(b?' ★':'')+'</td>';};
+    $('#resTbl').innerHTML='<tr><th>Algoritmo</th><th>Espera P1/P2/P3</th><th>Espera prom.</th><th>Retorno prom.</th><th>Respuesta prom.</th></tr>'
+      +ALG.map((a,i)=>'<tr><td><b>'+a.n+'</b></td><td class="num">'+M[i].wait.join(' / ')+'</td>'+c(M[i],'aw')+c(M[i],'ar')+c(M[i],'as')+'</tr>').join('')
+      +'<tr><td colspan="5" style="color:var(--mu);font-size:13px">★ = mejor valor de la columna (menor es mejor)</td></tr>';
+    const rr=M[2];
+    $('#calc').innerHTML='<b style="color:var(--yellow)">Cómo se calcula (P1 en Round Robin)</b>'
+      +'<span class="f">Retorno = fin − llegada = '+rr.fin[0]+' − 0 = '+rr.ret[0]+'</span>'
+      +'<span class="f">Espera = retorno − ráfaga = '+rr.ret[0]+' − 5 = '+rr.wait[0]+'</span>'
+      +'<span class="f">Respuesta = 1.ª ejecución − llegada = '+rr.first[0]+' − 0 = '+rr.resp[0]+'</span>'
+      +'<div style="margin-top:8px"><b>Conclusión:</b> SJF gana en espera, pero necesita conocer la ráfaga. Round Robin pierde en espera (5,00) pero responde más rápido (2,00 frente a 4,33). No hay un algoritmo mejor para todo.</div>';
+  }
+  function next(){if(k<10){k++;render();}}
+  async function play(){
+    if(playing){playing=0;render();return;}
+    if(k>=10)k=0;
+    const me=playing=Date.now();render();
+    while(playing===me&&k<10){await sleep(950);if(playing!==me)return;k++;render();}
+    playing=0;render();
+  }
+  $('#exPlay').onclick=play;
+  $('#exStep').onclick=()=>{playing=0;next();};
+  $('#exReset').onclick=()=>{playing=0;k=0;render();};
+  render();
+})();
+</script>
+</body>
+</html>
