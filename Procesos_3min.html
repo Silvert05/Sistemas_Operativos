@@ -106,15 +106,19 @@ main{max-width:1120px;margin:0 auto;padding:0 20px}
 .procs{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
 .pp{font:700 14px var(--mono);padding:6px 12px;border-radius:10px;color:#071018}
 .race{display:grid;gap:12px}
-.rw{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:start}
-.rl{font:800 15px var(--sans);padding-top:11px}
+.rw{display:grid;grid-template-columns:200px 1fr;gap:14px;align-items:start}
+.rl{font:800 18px/1.25 var(--sans);padding-top:6px}
+.rl small{display:block;font:500 14px/1.3 var(--sans);color:var(--mu);margin-top:4px}
+.read{background:rgba(79,157,255,.1);border:1px solid rgba(79,157,255,.35);border-radius:14px;padding:12px 18px;margin-bottom:12px;font-size:16.5px;color:#d3e4ff}
+.read b{color:#fff}
 .cells{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
 .ce{height:44px;border-radius:8px;background:#0b1326;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:800 14px var(--sans);color:#071018;transition:background .25s,transform .25s}
 .ce.now{outline:3px solid var(--yellow);transform:translateY(-3px)}
 .tick{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;font:12px var(--mono);color:var(--mu);margin-top:3px}
 .tick span{text-align:left;padding-left:2px}
-.info{font:13px/1.5 var(--mono);color:#b9c7de;min-height:40px;margin-top:6px}
+.info{font:15.5px/1.5 var(--sans);color:#c6d3ea;min-height:48px;margin-top:6px}
 .info b{color:var(--teal)}
+.info .nt{color:#f3e3a6}
 .ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0 14px}
 .tclock{font:800 18px var(--mono);color:var(--yellow);margin-left:6px}
 .tbl{width:100%;border-collapse:collapse;font-size:15px}
@@ -124,7 +128,13 @@ main{max-width:1120px;margin:0 auto;padding:0 20px}
 .num{font-family:var(--mono)} .best{color:var(--green);font-weight:800}
 .res{display:none;margin-top:12px}.res.on{display:grid;grid-template-columns:1.5fr 1fr;gap:14px}
 @media(max-width:900px){.res.on{grid-template-columns:1fr}}
-.calc{font-size:15px;color:var(--mu)} .calc b{color:var(--tx)} .calc .f{font:14px var(--mono);color:var(--yellow);display:block;margin:4px 0}
+.tbl th small{display:block;text-transform:none;letter-spacing:0;font:500 12.5px var(--sans);color:#8ea0bf;margin-top:2px}
+.calc{font-size:15.5px;color:var(--mu)} .calc b{color:var(--tx)} .calc .f{font:600 15px var(--sans);color:var(--yellow);display:block;margin:6px 0}
+.verdict{grid-column:1/-1;padding:14px 18px}
+.vg{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:10px 0 8px}
+.vg div{background:#0b1326;border:1px solid var(--bd);border-radius:12px;padding:10px 14px;font-size:15.5px;color:var(--mu)}
+.vg div b.t{display:block;color:var(--teal);font:800 13px var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.vg div b{color:var(--tx)}
 
 /* cierre */
 .big{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:16px}
@@ -227,33 +237,36 @@ main{max-width:1120px;margin:0 auto;padding:0 20px}
 <!-- ============ 3 PLANIFICACIÓN ============ -->
 <section id="plan" class="sl">
   <div class="kicker">03 · Planificación de la CPU <span class="budget">⏱ 0:30</span></div>
-  <h2>Hay más procesos que CPUs: <em>el planificador decide</em></h2>
+  <h2>Hay más clientes que ventanillas: <em>alguien decide el orden</em></h2>
   <div class="g3 algo">
-    <div class="card"><span class="sub">FCFS</span><h3>Primero en llegar</h3><p>Simple. Un proceso largo retrasa a los cortos (efecto convoy).</p></div>
-    <div class="card"><span class="sub">SJF</span><h3>El más corto primero</h3><p>La menor espera promedio, pero exige conocer la ráfaga.</p></div>
-    <div class="card accent"><span class="sub" style="color:var(--yellow)">Round Robin</span><h3>Turnos (quantum)</h3><p>Reparto justo y respuesta rápida. Muchos cambios de contexto si el quantum es chico.</p></div>
+    <div class="card"><span class="sub">FCFS</span><h3>Por orden de llegada</h3><p>El primero que llega se atiende completo. Simple, pero un trámite largo hace esperar a los cortos.</p></div>
+    <div class="card"><span class="sub">SJF</span><h3>El trámite más corto primero</h3><p>Es lo que menos hace esperar en promedio, pero hay que saber cuánto dura cada trámite.</p></div>
+    <div class="card accent"><span class="sub" style="color:var(--yellow)">Round Robin</span><h3>Turnos iguales</h3><p>Cada uno recibe unos minutos y, si no terminó, vuelve a la fila. Es parejo, pero cambiar de cliente cuesta tiempo.</p></div>
   </div>
+  <p style="color:var(--mu);margin:18px 0 0;font-size:16px">Para comparar las reglas medimos tres cosas:</p>
   <div class="metr">
-    <div><b>Retorno</b>fin − llegada</div>
-    <div><b>Espera</b>retorno − ráfaga</div>
-    <div><b>Respuesta</b>primera ejecución − llegada</div>
+    <div><b>Espera</b>minutos en la fila sin que lo atiendan</div>
+    <div><b>Tiempo total</b>desde que llega hasta que se va</div>
+    <div><b>Hasta que lo atienden</b>minutos hasta pasar a la ventanilla por primera vez</div>
   </div>
-  <div class="tip"><b>Ráfaga</b> = tiempo de CPU que necesita un proceso. <b>Quantum</b> = turno máximo que se le da en Round Robin.</div>
+  <div class="tip"><b>Turno (quantum)</b> = el tiempo máximo que dura cada turno. <b>Ráfaga</b> = los minutos de atención que necesita un trámite. <i>(Los nombres técnicos de las tres medidas: espera, retorno y respuesta.)</i></div>
 </section>
 
 <!-- ============ 4 EJEMPLO ============ -->
 <section id="ejemplo" class="sl">
   <div class="kicker">04 · Ejemplo resuelto <span class="budget">⏱ 0:55</span></div>
-  <h2>Tres procesos, tres algoritmos, <em>la misma CPU</em></h2>
+  <h2>Tres clientes, tres reglas, <em>una sola ventanilla</em></h2>
+  <div class="read"><b>Cómo leerlo:</b> cada cuadro es <b>1 minuto</b>. El color dice <b>a quién atiende el cajero</b> en ese minuto. Cada fila es una regla distinta para decidir quién pasa primero.</div>
   <div class="procs">
-    <span class="pp" style="background:#4f9dff">P1 · ráfaga 5</span><span class="pp" style="background:#ff9f43">P2 · ráfaga 3</span><span class="pp" style="background:#2dd4bf">P3 · ráfaga 2</span>
-    <span style="color:var(--mu);font-size:14.5px">Todos llegan en t = 0 · Round Robin con quantum = 2</span>
+    <span style="color:var(--mu);font-size:15px">Llegan los tres juntos y necesitan:</span>
+    <span class="pp" style="background:#4f9dff">P1 · 5 minutos</span><span class="pp" style="background:#ff9f43">P2 · 3 minutos</span><span class="pp" style="background:#2dd4bf">P3 · 2 minutos</span>
   </div>
-  <div class="ctrl"><button class="btn pri" id="exPlay">▶ Reproducir</button><button class="btn" id="exStep">⏭ Paso</button><button class="btn" id="exReset">↺ Reiniciar</button><span class="tclock" id="exT">t = 0</span></div>
+  <div class="ctrl"><button class="btn pri" id="exPlay">▶ Reproducir</button><button class="btn" id="exStep">⏭ Paso</button><button class="btn" id="exReset">↺ Reiniciar</button><span class="tclock" id="exT">minuto 0</span></div>
   <div class="race" id="race"></div>
   <div class="res" id="res">
     <div class="card" style="padding:12px 16px"><div style="overflow-x:auto"><table class="tbl" id="resTbl"></table></div></div>
     <div class="card calc" id="calc" style="padding:12px 18px"></div>
+    <div class="card verdict" id="verdict"></div>
   </div>
 </section>
 
@@ -269,7 +282,6 @@ main{max-width:1120px;margin:0 auto;padding:0 20px}
   <div class="card" style="padding:16px 22px"><span class="sub">Bibliografía</span>
     <p>Silberschatz, Galvin y Gagne. <i>Fundamentos de sistemas operativos.</i> · Tanenbaum y Bos. <i>Sistemas operativos modernos.</i> · Stallings. <i>Sistemas operativos.</i></p></div>
   <h2 style="margin:26px 0 0;font-size:clamp(34px,5vw,56px)">¿Preguntas?</h2>
-  <p style="color:var(--mu);margin-top:8px">Material de apoyo con todo el detalle: <b style="color:var(--tx)">Procesos_Lab.html</b></p>
 </section>
 </main>
 
@@ -288,8 +300,8 @@ const GUION={
   hero:['Inicio · 0:00','Buenos días. Voy a explicar los procesos en tres minutos: qué son, cómo viven, cómo se reparten la CPU y un ejemplo resuelto.'],
   concepto:['1 · Qué es un proceso · 0:00 – 0:35','Un proceso es un programa en ejecución. El programa es solo un archivo en el disco, como una receta; el proceso es esa receta puesta en marcha: tiene su memoria, su PID y su estado. De un mismo programa pueden existir varios procesos: aquí, al ejecutar el Bloc de notas dos veces, aparecen dos PID distintos.'],
   ciclo:['2 · Ciclo de vida · 0:35 – 1:15','Imaginen un banco con una sola ventanilla: la ventanilla es el procesador y cada cliente es un proceso. Cuando llega, está Nuevo. Hace fila: está Listo. Cuando le toca, lo atienden: está Ejecutando. Si necesita algo lento, como cargar un archivo, se hace a un lado: está Bloqueado, y cuando llega lo que esperaba, vuelve a la fila, no pasa directo. Al terminar, se va. La ficha donde se anota en qué iba cada cliente es el PCB, y cambiar de ficha para atender al siguiente se llama cambio de contexto.'],
-  plan:['3 · Planificación · 1:15 – 1:45','Como hay más procesos que CPUs, el planificador elige a quién le toca. FCFS atiende por orden de llegada; SJF, el más corto primero; Round Robin da turnos de un quantum. Los comparamos con tres métricas: retorno, espera y respuesta.'],
-  ejemplo:['4 · Ejemplo resuelto · 1:45 – 2:40','Veamos un ejemplo: tres procesos que llegan en cero, con ráfagas de 5, 3 y 2. Con FCFS la espera promedio es 4,33. SJF la baja a 2,33, pero necesita conocer la ráfaga. Round Robin con quantum 2 tiene más espera, 5, pero responde mucho más rápido: respuesta 2 contra 4,33. La conclusión: no hay un algoritmo mejor para todo.'],
+  plan:['3 · Planificación · 1:15 – 1:45','Como hay más procesos que procesadores, es como un banco con una ventanilla: alguien tiene que decidir el orden. Hay tres reglas: por orden de llegada, el trámite más corto primero, o turnos iguales de unos minutos. Para compararlas medimos tres cosas: cuánto esperó cada cliente en la fila, cuánto estuvo en total en el banco y cuánto tardó en que lo empezaran a atender.'],
+  ejemplo:['4 · Ejemplo resuelto · 1:45 – 2:40','Imaginen tres clientes que llegan juntos al banco: uno necesita 5 minutos, otro 3 y otro 2. Cada cuadro es un minuto y el color dice a quién atiende el cajero. Primera regla, el que llegó primero: P1 pasa completo y P3, que solo necesitaba 2 minutos, espera 8. Segunda, el trámite más corto primero: menos espera para todos, 2,33 en promedio. Tercera, turnos de 2 minutos: nadie espera mucho para que lo empiecen a atender, 2 minutos en promedio, aunque la espera total sube a 5. Conclusión: no hay una regla mejor para todo, depende de lo que importe más.'],
   cierre:['5 · Conclusión · 2:40 – 3:00','En resumen: un proceso es un programa en ejecución, vive entre estados guardados en su PCB, y el planificador reparte la CPU según un criterio. Gracias, ¿hay preguntas?']
 };
 const IDS=['hero','concepto','ciclo','plan','ejemplo','cierre'];
@@ -361,16 +373,16 @@ setGuion();
 /* ================= 4 ejemplo resuelto ================= */
 (function(){
   const NAMES=['P1','P2','P3'],BURST=[5,3,2],COL=['#4f9dff','#ff9f43','#2dd4bf'];
-  const ALG=[{k:'fcfs',n:'FCFS',order:[0,1,2],q:Infinity},{k:'sjf',n:'SJF',order:[2,1,0],q:Infinity},{k:'rr',n:'Round Robin',order:[0,1,2],q:2}];
+  const ALG=[{k:'fcfs',n:'FCFS',sub:'el que llegó primero, pasa primero',order:[0,1,2],q:Infinity},{k:'sjf',n:'SJF',sub:'el trámite más corto, primero',order:[2,1,0],q:Infinity},{k:'rr',n:'Round Robin',sub:'turnos de 2 minutos',order:[0,1,2],q:2}];
   function build(order,q){
     const rem=BURST.slice(),queue=order.slice(),out=[];let cur=null,used=0,t=0;
     while(rem.some(r=>r>0)){
       if(cur===null){cur=queue.shift();used=0;}
-      const note=[];if(used===0)note.push('<b>'+NAMES[cur]+'</b> recibe la CPU');
+      const note=[];if(used===0)note.push('<b>'+NAMES[cur]+'</b> pasa a la ventanilla');
       const run=cur,wait=queue.map(i=>NAMES[i]);
       rem[cur]--;used++;
-      if(rem[cur]===0){note.push(NAMES[cur]+' termina en t = '+(t+1));cur=null;}
-      else if(used>=q){note.push('se agota el quantum de '+NAMES[run]+': vuelve al final de la cola');queue.push(cur);cur=null;}
+      if(rem[cur]===0){note.push(NAMES[cur]+' termina su trámite y se va');cur=null;}
+      else if(used>=q){note.push('se le acaban los 2 minutos: '+NAMES[run]+' vuelve al final de la fila');queue.push(cur);cur=null;}
       out.push({run,wait,rem:rem.slice(),note:note.join(' · ')});t++;
     }
     return out;
@@ -385,7 +397,7 @@ setGuion();
   }
   const M=TR.map(metrics);
   const race=$('#race');
-  race.innerHTML=ALG.map((a,r)=>'<div class="rw"><div class="rl">'+a.n+(a.k==='rr'?'<br><small style="color:var(--mu);font-weight:600">quantum 2</small>':'')+'</div><div><div class="cells" id="c'+r+'">'+Array.from({length:10},(_,i)=>'<div class="ce" data-i="'+i+'"></div>').join('')+'</div><div class="tick">'+Array.from({length:10},(_,i)=>'<span>'+i+'</span>').join('')+'</div><div class="info" id="i'+r+'"></div></div></div>').join('');
+  race.innerHTML=ALG.map((a,r)=>'<div class="rw"><div class="rl">'+a.n+'<small>'+a.sub+'</small></div><div><div class="cells" id="c'+r+'">'+Array.from({length:10},(_,i)=>'<div class="ce" data-i="'+i+'"></div>').join('')+'</div><div class="tick">'+Array.from({length:10},(_,i)=>'<span>'+i+'</span>').join('')+'</div><div class="info" id="i'+r+'"></div></div></div>').join('');
   let k=0,playing=0;
   function render(){
     TR.forEach((tr,r)=>{
@@ -395,10 +407,10 @@ setGuion();
         c.classList.toggle('now',i===k-1);
       });
       const inf=$('#i'+r);
-      if(k===0)inf.innerHTML='<span style="color:#5b6d8c">En espera…</span>';
-      else{const x=tr[k-1];inf.innerHTML='CPU: <b>'+NAMES[x.run]+'</b> · cola: '+(x.wait.length?x.wait.join(', '):'—')+'<br>'+x.note;}
+      if(k===0)inf.innerHTML='<span style="color:#7587a6">Pulsa «Reproducir» para ver cómo atiende el cajero.</span>';
+      else{const x=tr[k-1];inf.innerHTML='Minuto '+(k-1)+' al '+k+': atiende a <b>'+NAMES[x.run]+'</b> · en la fila: '+(x.wait.length?x.wait.join(', '):'nadie')+(x.note?'<br><span class="nt">'+x.note+'</span>':'');}
     });
-    $('#exT').textContent='t = '+k;
+    $('#exT').textContent='minuto '+k;
     $('#exPlay').textContent=playing?'⏸ Pausar':'▶ Reproducir';
     $('#exStep').disabled=k>=10;
     const done=k>=10;$('#res').classList.toggle('on',done);
@@ -407,15 +419,19 @@ setGuion();
   function results(){
     const best=key=>Math.min(...M.map(m=>m[key]));
     const c=(m,key)=>{const b=Math.abs(m[key]-best(key))<1e-9;return '<td class="num'+(b?' best':'')+'">'+fmt(m[key])+(b?' ★':'')+'</td>';};
-    $('#resTbl').innerHTML='<tr><th>Algoritmo</th><th>Espera P1/P2/P3</th><th>Espera prom.</th><th>Retorno prom.</th><th>Respuesta prom.</th></tr>'
-      +ALG.map((a,i)=>'<tr><td><b>'+a.n+'</b></td><td class="num">'+M[i].wait.join(' / ')+'</td>'+c(M[i],'aw')+c(M[i],'ar')+c(M[i],'as')+'</tr>').join('')
-      +'<tr><td colspan="5" style="color:var(--mu);font-size:13px">★ = mejor valor de la columna (menor es mejor)</td></tr>';
+    $('#resTbl').innerHTML='<tr><th>Regla</th><th>Minutos que esperó cada uno<small>P1 · P2 · P3</small></th><th>Espera promedio<small>(tiempo en la fila)</small></th><th>Tiempo total en el banco<small>(promedio)</small></th><th>Hasta que lo atienden<small>(promedio)</small></th></tr>'
+      +ALG.map((a,i)=>'<tr><td><b>'+a.n+'</b></td><td class="num">'+M[i].wait.join(' · ')+'</td>'+c(M[i],'aw')+c(M[i],'ar')+c(M[i],'as')+'</tr>').join('')
+      +'<tr><td colspan="5" style="color:var(--mu);font-size:13px">★ = el mejor valor de la columna (mientras menos minutos, mejor)</td></tr>';
     const rr=M[2];
-    $('#calc').innerHTML='<b style="color:var(--yellow)">Cómo se calcula (P1 en Round Robin)</b>'
-      +'<span class="f">Retorno = fin − llegada = '+rr.fin[0]+' − 0 = '+rr.ret[0]+'</span>'
-      +'<span class="f">Espera = retorno − ráfaga = '+rr.ret[0]+' − 5 = '+rr.wait[0]+'</span>'
-      +'<span class="f">Respuesta = 1.ª ejecución − llegada = '+rr.first[0]+' − 0 = '+rr.resp[0]+'</span>'
-      +'<div style="margin-top:8px"><b>Conclusión:</b> SJF gana en espera, pero necesita conocer la ráfaga. Round Robin pierde en espera (5,00) pero responde más rápido (2,00 frente a 4,33). No hay un algoritmo mejor para todo.</div>';
+    $('#calc').innerHTML='<b style="color:var(--yellow)">Cómo se saca (ejemplo: P1 en Round Robin)</b>'
+      +'<span class="f">Tiempo en el banco: llegó en el minuto 0 y salió en el '+rr.fin[0]+' → '+rr.ret[0]+' min</span>'
+      +'<span class="f">Esperó en la fila: '+rr.ret[0]+' min en el banco − 5 min atendido = '+rr.wait[0]+' min</span>'
+      +'<span class="f">Lo empezaron a atender en el minuto '+rr.first[0]+'</span>';
+    $('#verdict').innerHTML='<b style="color:var(--yellow)">¿Qué pasó en cada regla?</b><div class="vg">'
+      +'<div><b class="t">FCFS</b>P3 solo necesitaba 2 minutos, pero esperó <b>'+M[0].wait[2]+'</b> detrás del trámite largo de P1.</div>'
+      +'<div><b class="t">SJF</b>Los trámites cortos pasan primero: <b>menos espera para todos</b> (promedio '+fmt(M[1].aw)+'). Pero hay que saber cuánto dura cada trámite.</div>'
+      +'<div><b class="t">Round Robin</b>Nadie espera mucho para que lo empiecen a atender (promedio '+fmt(M[2].as)+'), pero al interrumpir los turnos la espera total sube ('+fmt(M[2].aw)+').</div></div>'
+      +'<div style="font-size:15.5px"><b>Conclusión:</b> no hay una regla mejor para todo; depende de lo que importe más.</div>';
   }
   function next(){if(k<10){k++;render();}}
   async function play(){
