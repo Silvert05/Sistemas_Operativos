@@ -27,9 +27,6 @@ p{margin:0 0 10px} h1,h2,h3{margin:0;line-height:1.12} code{font-family:var(--mo
 .steps a small{opacity:.7;font-weight:600;margin-left:6px}
 .steps a.on{background:var(--teal);color:#06231f;border-color:var(--teal)}
 .timer{display:flex;align-items:center;gap:8px}
-.clock{font:800 22px var(--mono);min-width:72px;text-align:center;padding:4px 12px;border-radius:10px;background:#0b1326;border:1px solid var(--bd2)}
-.clock.warn{color:var(--yellow);border-color:var(--yellow)} .clock.end{color:var(--red);border-color:var(--red);animation:blink 1s infinite}
-@keyframes blink{50%{opacity:.45}}
 .btn{font:700 14.5px var(--sans);color:var(--tx);background:var(--surf2);border:1px solid var(--bd2);border-radius:11px;padding:9px 15px;cursor:pointer;transition:transform .12s,background .15s,border-color .15s;text-decoration:none;display:inline-block}
 .btn:hover:not(:disabled){background:#1e2d50;border-color:var(--blue);transform:translateY(-1px)}
 .btn.pri{background:var(--teal);color:#06231f;border-color:var(--teal)} .btn.pri:hover:not(:disabled){background:#5eead4}
@@ -141,11 +138,6 @@ main{max-width:1120px;margin:0 auto;padding:0 20px}
 .big .card .n{font:800 40px var(--mono);color:var(--yellow);line-height:1;margin-bottom:6px}
 .big .card p{font-size:17px;color:var(--tx)}
 
-/* guion */
-.guion{position:fixed;left:0;right:0;bottom:0;z-index:70;background:rgba(8,13,26,.97);border-top:3px solid var(--orange);padding:14px 26px 18px;display:none;max-height:36vh;overflow:auto}
-.guion.on{display:block}
-.guion h4{margin:0 0 6px;font:700 12px var(--mono);letter-spacing:.14em;color:var(--orange);text-transform:uppercase}
-.guion p{font-size:19px;line-height:1.6;margin:0;max-width:1000px}
 .hint{position:fixed;left:16px;bottom:14px;font:500 13px var(--sans);color:#6f82a3;z-index:5}
 </style>
 </head>
@@ -156,7 +148,6 @@ main{max-width:1120px;margin:0 auto;padding:0 20px}
   <nav class="steps" id="nav">
     <a href="#hero">Inicio</a><a href="#concepto">1 · Concepto <small>0:00</small></a><a href="#ciclo">2 · Ciclo de vida <small>0:35</small></a><a href="#plan">3 · Planificación <small>1:15</small></a><a href="#ejemplo">4 · Ejemplo <small>1:45</small></a><a href="#cierre">5 · Cierre <small>2:40</small></a>
   </nav>
-  <div class="timer"><span class="clock" id="clock">3:00</span><button class="btn sm pri" id="tGo">▶ Iniciar</button><button class="btn sm" id="tReset" title="Reiniciar cronómetro">↺</button><button class="btn sm warn" id="gBtn" title="Guion (tecla G)">Guion</button></div>
 </header>
 <div class="prog" id="prog"></div>
 
@@ -174,7 +165,7 @@ main{max-width:1120px;margin:0 auto;padding:0 20px}
     <div><b>0:55</b><span>4 · Ejemplo resuelto</span></div>
     <div><b>0:20</b><span>5 · Conclusión</span></div>
   </div>
-  <div><button class="btn pri" id="startAll">▶ Iniciar cronómetro y comenzar</button> <span style="color:var(--mu);font-size:14px;margin-left:8px">Flechas ↑ ↓ o espacio para avanzar · G muestra el guion</span></div>
+  <div><button class="btn pri" id="startAll">▶ Comenzar</button> <span style="color:var(--mu);font-size:14px;margin-left:8px">Flechas ↑ ↓ o espacio para avanzar</span></div>
   <div class="by">[Nombre del presentador] · [Curso / Docente] · [Fecha]</div>
 </section>
 
@@ -285,8 +276,7 @@ main{max-width:1120px;margin:0 auto;padding:0 20px}
 </section>
 </main>
 
-<div class="guion" id="guion"><h4 id="gTit"></h4><p id="gTxt"></p></div>
-<div class="hint">G: guion · Espacio / ↓: siguiente</div>
+<div class="hint">Espacio / ↓: siguiente · ↑: anterior</div>
 
 <script>
 const $=(s,r=document)=>r.querySelector(s);
@@ -295,45 +285,23 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const fmt=n=>(Math.round(n*100)/100).toFixed(2).replace('.',',');
 const badge=s=>'<span class="st st-'+s+'">'+s+'</span>';
 
-/* ================= guion y navegación ================= */
-const GUION={
-  hero:['Inicio · 0:00','Buenos días. Voy a explicar los procesos en tres minutos: qué son, cómo viven, cómo se reparten la CPU y un ejemplo resuelto.'],
-  concepto:['1 · Qué es un proceso · 0:00 – 0:35','Un proceso es un programa en ejecución. El programa es solo un archivo en el disco, como una receta; el proceso es esa receta puesta en marcha: tiene su memoria, su PID y su estado. De un mismo programa pueden existir varios procesos: aquí, al ejecutar el Bloc de notas dos veces, aparecen dos PID distintos.'],
-  ciclo:['2 · Ciclo de vida · 0:35 – 1:15','Imaginen un banco con una sola ventanilla: la ventanilla es el procesador y cada cliente es un proceso. Cuando llega, está Nuevo. Hace fila: está Listo. Cuando le toca, lo atienden: está Ejecutando. Si necesita algo lento, como cargar un archivo, se hace a un lado: está Bloqueado, y cuando llega lo que esperaba, vuelve a la fila, no pasa directo. Al terminar, se va. La ficha donde se anota en qué iba cada cliente es el PCB, y cambiar de ficha para atender al siguiente se llama cambio de contexto.'],
-  plan:['3 · Planificación · 1:15 – 1:45','Como hay más procesos que procesadores, es como un banco con una ventanilla: alguien tiene que decidir el orden. Hay tres reglas: por orden de llegada, el trámite más corto primero, o turnos iguales de unos minutos. Para compararlas medimos tres cosas: cuánto esperó cada cliente en la fila, cuánto estuvo en total en el banco y cuánto tardó en que lo empezaran a atender.'],
-  ejemplo:['4 · Ejemplo resuelto · 1:45 – 2:40','Imaginen tres clientes que llegan juntos al banco: uno necesita 5 minutos, otro 3 y otro 2. Cada cuadro es un minuto y el color dice a quién atiende el cajero. Primera regla, el que llegó primero: P1 pasa completo y P3, que solo necesitaba 2 minutos, espera 8. Segunda, el trámite más corto primero: menos espera para todos, 2,33 en promedio. Tercera, turnos de 2 minutos: nadie espera mucho para que lo empiecen a atender, 2 minutos en promedio, aunque la espera total sube a 5. Conclusión: no hay una regla mejor para todo, depende de lo que importe más.'],
-  cierre:['5 · Conclusión · 2:40 – 3:00','En resumen: un proceso es un programa en ejecución, vive entre estados guardados en su PCB, y el planificador reparte la CPU según un criterio. Gracias, ¿hay preguntas?']
-};
+/* ================= navegación ================= */
 const IDS=['hero','concepto','ciclo','plan','ejemplo','cierre'];
 let curSec='hero';
 (function(){
   const links=$$('#nav a'),prog=$('#prog');
-  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>=.5){curSec=e.target.id;links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+curSec));setGuion();}});},{threshold:[.5]});
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>=.5){curSec=e.target.id;links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+curSec));}});},{threshold:[.5]});
   IDS.forEach(id=>io.observe($('#'+id)));
   addEventListener('scroll',()=>{const h=document.documentElement;prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';},{passive:true});
 })();
-function setGuion(){const g=GUION[curSec];$('#gTit').textContent=g[0];$('#gTxt').textContent=g[1];}
 function go(d){const i=Math.max(0,Math.min(IDS.length-1,IDS.indexOf(curSec)+d));$('#'+IDS[i]).scrollIntoView({behavior:'smooth'});}
-$('#gBtn').onclick=()=>$('#guion').classList.toggle('on');
 addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT')return;
-  if(e.key==='g'||e.key==='G')$('#guion').classList.toggle('on');
-  else if(e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(1);}
+  if(e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(1);}
   else if(e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();go(-1);}
 });
-setGuion();
 
-/* ================= cronómetro 3:00 ================= */
-(function(){
-  let left=180,timer=null;const clk=$('#clock');
-  function draw(){const m=Math.floor(left/60),s=left%60;clk.textContent=m+':'+String(s).padStart(2,'0');clk.className='clock'+(left<=0?' end':left<=30?' warn':'');}
-  function stop(){clearInterval(timer);timer=null;$('#tGo').textContent='▶ Iniciar';}
-  function start(){if(timer)return;if(left<=0)left=180;timer=setInterval(()=>{left--;draw();if(left<=0)stop();},1000);$('#tGo').textContent='⏸ Pausar';}
-  $('#tGo').onclick=()=>timer?stop():start();
-  $('#tReset').onclick=()=>{stop();left=180;draw();};
-  $('#startAll').onclick=()=>{start();go(1);};
-  draw();
-})();
+$('#startAll').onclick=()=>go(1);
 
 /* ================= 1 concepto ================= */
 (function(){
